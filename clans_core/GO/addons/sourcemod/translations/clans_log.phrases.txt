@@ -1,0 +1,164 @@
+"Phrases"
+{
+	"L_Kill"
+	{
+		"en"	"killed"
+		"ru"	"убил"
+	}
+
+	"L_TakeCoins"
+	{
+		"#format"	"{1:i},{2:s}"
+		"en"	"took {1} coins from clan {2}"
+		"ru"	"забрал {1} монет у клана {2}"
+	}
+
+	"L_GiveCoins"
+	{
+		"#format"	"{1:i},{2:s}"
+		"en"	"gave {1} coins to clan {2}"
+		"ru"	"дал {1} монет клану {2}"
+	}
+
+	"L_SetCoins"
+	{
+		"#format"	"{1:i},{2:s}"
+		"en"	"set {1} coins to clan {2}"
+		"ru"	"установил {1} монет клану {2}"
+	}
+
+	"L_TakeSlots"
+	{
+		"#format"	"{1:i},{2:s}"
+		"en"	"took {1} slots from clan {2}"
+		"ru"	"забрал {1} слотов у клана {2}"
+	}
+
+	"L_GiveSlots"
+	{
+		"#format"	"{1:i},{2:s}"
+		"en"	"gave {1} slots to clan {2}"
+		"ru"	"дал {1} слотов клану {2}"
+	}
+
+	"L_SetSlots"
+	{
+		"#format"	"{1:i},{2:s}"
+		"en"	"set {1} slots to clan {2}"
+		"ru"	"установил {1} слотов клану {2}"
+	}
+
+	"L_ResetPlayer"
+	{
+		"#format"	"{1:s}"
+		"en"	"reset player {1}"
+		"ru"	"обнулил игрока {1}"
+	}
+
+	"L_ResetClan"
+	{
+		"#format"	"{1:s}"
+		"en"	"reset clan {1}"
+		"ru"	"обнулил клан {1}"
+	}
+
+	"L_DeletePlayer"
+	{
+		"#format"	"{1:s},{2:s}"
+		"en"	"deleted player {1} from clan {2}"
+		"ru"	"удалил игрока {1} из клана {2}"
+	}
+
+	"L_DeleteClan"
+	{
+		"#format"	"{1:s}"
+		"en"	"deleted clan {1}"
+		"ru"	"удалил клан {1}"
+	}
+
+	"L_CreateClan"
+	{
+		"#format"	"{1:s}"
+		"en"	"created clan {1}"
+		"ru"	"создал клан {1}"
+	}
+	
+	"L_RenameClan"
+	{
+		"#format"	"{1:s},{2:s}"
+		"en"	"renamed clan {1} to {2}"
+		"ru"	"переименовал клан {1} в {2}"
+	}
+
+	"L_CreatePlayer"
+	{
+		"#format"	"{1:s}"
+		"en"	"joined clan {1}"
+		"ru"	"вступил в клан {1}"
+	}
+
+	"L_TransferCoins"
+	{
+		"#format"	"{1:i},{2:s}"
+		"en"	"transfered {1} coins to clan {2}"
+		"ru"	"перевел {1} монет клану {2}"
+	}
+	
+	"L_LeaveClan"
+	{
+		"#format"	"{1:s}"
+		"en"	"left clan {1}"
+		"ru"	"покинул клан {1}"
+	}
+
+	"L_ClanChat"
+	{
+		"#format"	"{1:s}"
+		"en"	"CCT: {1}"
+		"ru"	"CCT: {1}"
+	}
+	
+	"LA_CreatePlayer"
+	{
+		"#format"	"{1:s},{2:s},{3:i}"
+		"en"	"add player {1} to clan {2} with flag {3}"
+		"ru"	"добавил игрока {1} в клан {2} с флагом {3}"
+	}
+	
+	"LA_DeletePlayer"
+	{
+		"#format"	"{1:s},{2:s}"
+		"en"	"deleted player {1} from clan {2}"
+		"ru"	"удалил игрока {1} из клана {2}"
+	}
+
+	"L_ExpandClan"
+	{
+		"#format"	"{1:i}"
+		"en"	"expand clan by {1} slots"
+		"ru"	"расширил клан на {1} слотов"
+	}
+	
+	"L_SetLeader"
+	{
+		"#format"	"{1:s},{2:s}"
+		"en"	"set player {1} as a leader of clan {2}"
+		"ru"	"поставил игрока {1} лидером клана {2}"
+	}
+
+	"L_SetClanType"
+	{
+		"#format"	"{1:i},{2:s}"
+		"en"	"set type to {1} in clan {2}"
+		"ru"	"поставил тип {1} клану {2}"
+	}
+
+	"L_SetRole"
+	{
+		"#format"	"{1:s},{2:i}"
+		"en"	"set {1}'s role to {2}"
+		"ru"	"поставил игроку {1} роль {2}"
+	}
+
+
+}

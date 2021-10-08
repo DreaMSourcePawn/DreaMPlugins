@@ -1,0 +1,47 @@
+Capabilities:
+	Expand clan
+	Transfer coins to other clan
+	Invite player
+	Kick player
+	Change type of the clan
+	Change role of the player (it cannot be higher than role of the player, who is changing the role)
+	
+Roles:
+elder - 1
+co-leader - 2
+leader - 4
+
+sum roles to give permissions to several groups
+Example:
+	invite player = 7 (ecl). Everyone, except members, can invite players
+	kick player = 6 (cl). Leader and co-leader can kick players out of clan, elders can't
+============================================================================================
+sm_clans_logs N	//1 - to log, 0 - not to log
+sm_clans_logflags N //Set flags for logging. Sum these which you need. If you want to log everything (at version 1.6), set 511
+Flags for logging:
+0			nothing
+1			kills (unavailable now)
+2			changes of coins
+4			renamings of clans
+8			creation/removing/reset clan
+16			joining to clan/kick out of clan/reset player
+32			changes of clan type
+64			changes of roles (selecting new clan leader as well)
+128			changes of number of slots in clan
+256			clan chat
+
+Log looks like:
+*Player* from *clan* did something to *other player* from *clan* | type | when it happend
+
+Tables in database:
+playerid			- id of player who did the action (easy to catch admins, who are not in any clan. Their id is going to be -1)
+playerName			- name of this player
+clanid				- his clan's id
+clanName			- his clan's name
+action				- what player did
+toWhomPlayerID		- id of player that the action was taken on
+toWhomPlayerName	- name of this player
+toWhomClanid		- id of the clan that the action was taken on, or id of the clan over whose member the action was taken
+toWhomClanName		- clan's name
+itime 				- UNIX time
+time 				- date and time of the action
