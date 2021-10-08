@@ -1,0 +1,86 @@
+"Phrases"
+{
+	"TestItem"
+	{
+		"en"	"Other"
+		"ru"	"вцфщвцфшщ"
+	}
+	
+	"TestItemDesc"
+	{
+		"en"	"Description"
+		"ru"	"Описание тут"
+	}
+	
+	"5HP"
+	{
+		"en"	"5 HP"
+		"ru"	"5 HP"
+	}
+	
+	"5HPDesc"
+	{
+		"en"	"Add 5 HP at the round start"
+		"ru"	"Добавляет 5 HP при старте"
+	}
+	
+	"Health"
+	{
+		"en"	"Addtional HP"
+		"ru"	"Доп. HP"
+	}
+	
+	"HealthDesc"
+	{
+		"en"	"Add 15 HP at the round start"
+		"ru"	"Добавляет 15 HP при старте"
+	}
+	
+	"Armor"
+	{
+		"en"	"Armor"
+		"ru"	"Броня"
+	}
+	
+	"ArmorDesc"
+	{
+		"en"	"Give armor at the round start"
+		"ru"	"Выдает броню при старте"
+	}
+	
+	"DamageDealt"
+	{
+		"en"	"Damage dealt multiplier"
+		"ru"	"Множитель наносимого урона"
+	}
+	
+	"DamageDealtDesc"
+	{
+		"en"	"Increase damage dealt by 1.1 times"
+		"ru"	"Увеличивает наносимый урон в 1.1 раз"
+	}
+	
+	"DamageTaken"
+	{
+		"en"	"Damage taken multiplier"
+		"ru"	"Множитель получаемого урона"
+	}
+	
+	"DamageTakenDesc"
+	{
+		"en"	"Reduce damage taken by 10%"
+		"ru"	"Уменьшает получемаемый урон на 10%"
+	}
+	
+	"VIP1"
+	{
+		"en"	"VIP GROUP HERE"
+		"ru"	"VIP GROUP ЗДЕСЬ"
+	}
+	
+	"VIP1desc"
+	{
+		"en"	"VIP description"
+		"ru"	"Описание VIP"
+	}
+}
