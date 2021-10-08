@@ -1,0 +1,624 @@
+"Phrases"
+{
+	"c_CoinsNow"
+	{
+		"#format"	"{1:s},{2:i}"
+		"en"	"{green}[CLANS]{lightgreen} Clan {1} has {2} coins now."
+		"ru"	"{green}[CLANS]{lightgreen} Теперь у клана {1} {2} монет."
+	}
+	
+	"c_PlayerReset"
+	{
+		"#format"	"{1:s}"
+		"en"	"{green}[CLANS]{lightgreen} Player {1} was reseted."
+		"ru"	"{green}[CLANS]{lightgreen} Игрок {1} был обнулен."
+	}
+	
+	"c_ClanReset"
+	{
+		"#format"	"{1:s}"
+		"en"	"{green}[CLANS]{lightgreen} Clan {1} was reseted."
+		"ru"	"{green}[CLANS]{lightgreen} Клан {1} был обнулен."
+	}
+	
+	"c_PlayerDelete"
+	{
+		"#format"	"{1:s}"
+		"en"	"{green}[CLANS]{lightgreen} Player {1} was deleted."
+		"ru"	"{green}[CLANS]{lightgreen} Игрок {1} был удален."
+	}
+	
+	"c_ClanDelete"
+	{
+		"#format"	"{1:s}"
+		"en"	"{green}[CLANS]{lightgreen} Clan {1} was deleted."
+		"ru"	"{green}[CLANS]{lightgreen} Клан {1} был удален."
+	}
+	
+	"c_WrongClanName"
+	{
+		"#format"	"{1:i}"
+		"en"	"{lightred}[CLANS]{lightgreen} Wrong clan name! It must contains 1-{1} letters."
+		"ru"	"{lightred}[CLANS]{lightgreen} Неправильно введено имя клана! Оно должно содержать от 1 до {1} символов."
+	}
+	
+	"c_ClanAlreadyExists"
+	{
+		"en"	"{lightred}[CLANS]{lightgreen} Clan with the same name already exists!"
+		"ru"	"{lightred}[CLANS]{lightgreen} Клан с таким именем уже существует!"
+	}
+	
+	"c_ClanDoesntExist"
+	{
+		"en"	"{lightred}[CLANS]{lightgreen} Clan doesn't exist!"
+		"ru"	"{lightred}[CLANS]{lightgreen} Клан не существует!"
+	}
+	
+	"c_PlayerSteamDoesntExist"
+	{
+		"en"	"{lightred}[CLANS]{lightgreen} Player with this Steam ID wasn't found!"
+		"ru"	"{lightred}[CLANS]{lightgreen} Игрока с таким Steam ID не найдено!"
+	}
+	
+	"c_PlayerIDDoesntExist"
+	{
+		"en"	"{lightred}[CLANS]{lightgreen} Player with this ID wasn't found!"
+		"ru"	"{lightred}[CLANS]{lightgreen} Игрока с таким ID не найдено!"
+	}
+	
+	"c_ClanLimit"
+	{
+		"en"	"{lightred}[CLANS]{lightgreen} Clan limit reached!"
+		"ru"	"{lightred}[CLANS]{lightgreen} Достигнут лимит кланов!"
+	}
+	
+	"c_CreationSuccess"
+	{
+		"en"	"{green}[CLANS]{lightgreen} Clan was successfully created!"
+		"ru"	"{green}[CLANS]{lightgreen} Клан был успешно создан!"
+	}
+	
+	"c_LeavingSuccess"
+	{
+		"en"	"{green}[CLANS]{lightgreen} You successfully left the clan!"
+		"ru"	"{green}[CLANS]{lightgreen} Вы успешно покинули клан!"
+	}
+	
+	"c_DisbandSuccess"
+	{
+		"en"	"{green}[CLANS]{lightgreen} Clan was successfully disbanded!"
+		"ru"	"{green}[CLANS]{lightgreen} Клан был успешно расформирован!"
+	}
+	
+	"c_ExpandSuccess"
+	{
+		"en"	"{green}[CLANS]{lightgreen} Clan was successfully expanded!"
+		"ru"	"{green}[CLANS]{lightgreen} Вы успешно расширили клан!"
+	}
+	
+	"c_LeaderSuccess"
+	{
+		"en"	"{green}[CLANS]{lightgreen} Leadership successfully transferlightred!"
+		"ru"	"{green}[CLANS]{lightgreen} Лидерство успешно передано!"
+	}
+	
+	"c_YouAreAlreadyInClan"
+	{
+		"en"	"{lightred}[CLANS]{lightgreen} You are already in clan!"
+		"ru"	"{lightred}[CLANS]{lightgreen} Вы уже в клане!"
+	}
+	
+	"c_YouAreNotInClan"
+	{
+		"en"	"{lightred}[CLANS]{lightgreen} You aren't in clan!"
+		"ru"	"{lightred}[CLANS]{lightgreen} Вы не в клане!"
+	}
+	
+	"c_PlayerIsNotInClan"
+	{
+		"en"	"{lightred}[CLANS]{lightgreen} The player isn't in clan!"
+		"ru"	"{lightred}[CLANS]{lightgreen} Игрок не в клане!"
+	}
+	
+	"c_LeftClan"
+	{
+		"en"	"{green}[CLANS]{lightgreen} You left the clan!"
+		"ru"	"{green}[CLANS]{lightgreen} Вы вышли из клана!"
+	}
+	
+	"c_NotInvited"
+	{
+		"en"	"{lightred}[CLANS]{lightgreen} You're not invited to any clan!"
+		"ru"	"{lightred}[CLANS]{lightgreen} Вас не приглашали ни в какой клан!"
+	}
+	
+	"c_CantInvite"
+	{
+		"en"	"{lightred}[CLANS]{lightgreen} You can't invite to clan!"
+		"ru"	"{lightred}[CLANS]{lightgreen} Вы не можете приглашать в клан!"
+	}
+	
+	"c_NoOneToInvite"
+	{
+		"en"	"{lightred}[CLANS]{lightgreen} There are no players available to be invited!"
+		"ru"	"{lightred}[CLANS]{lightgreen} Некого приглашать!"
+	}
+	
+	"c_MaxMembersInClan"
+	{
+		"en"	"{lightred}[CLANS]{lightgreen} The clan reached maximum of members!"
+		"ru"	"{lightred}[CLANS]{lightgreen} В клане максимальное количество участников!"
+	}
+	
+	"c_Wrongcclan"
+	{
+		"en"	"{lightred}[CLANS]{lightgreen} Incorrectly entered command! Tip: !cclan [name of clan 1-8 characters]"
+		"ru"	"{lightred}[CLANS]{lightgreen} Неверно введена комадна! !cclan [Название клана 1-8 символов]"
+	}
+	
+	"c_WrongPToClan"
+	{
+		"en"	"{lightred}[CLANS]{lightgreen} Incorrectly entered command! Tip: !ptoclan [userid in status] [clan id] [4 - leader, 2 - co-leader, 1 - elder, 0 - member]!"
+		"ru"	"{lightred}[CLANS]{lightgreen} Неверно введена комадна! !ptoclan [userid в status] [ID клана] [4 - Лидер, 2 - зам, 1 - старейшина, 0 - участник]!"
+	}
+	
+	"c_WrongPOutOfClan"
+	{
+		"en"	"{lightred}[CLANS]{lightgreen} Incorrectly entered command! Tip: !poutofclan [player ID in database or his steam as U:]"
+		"ru"	"{lightred}[CLANS]{lightgreen} Неверно введена комадна! !poutofclan [ID игрока в базе или его Steam ID формата U:]"
+	}
+	
+	"c_Wrongadclan"
+	{
+		"en"	"{lightred}[CLANS]{lightgreen} Incorrectly entered command! Tip: !adclan [clan id]"
+		"ru"	"{lightred}[CLANS]{lightgreen} Неверно введена комадна! !adclan [ID клана]"
+	}
+	
+	"c_Wrongasetcoins"
+	{
+		"en"	"{lightred}[CLANS]{lightgreen} Incorrectly entered command! Tip: !asetcoins [clan id] [amount of coins]"
+		"ru"	"{lightred}[CLANS]{lightgreen} Неверно введена комадна! !asetcoins [ID клана] [количество монет]"
+	}
+	
+	"c_Wrongarclan"
+	{
+		"en"	"{lightred}[CLANS]{lightgreen} Incorrectly entered command! Tip: !arclan [clan id]"
+		"ru"	"{lightred}[CLANS]{lightgreen} Неверно введена комадна! !arclan [ID клана]"
+	}
+	
+	"c_Wrongarclient"
+	{
+		"en"	"{lightred}[CLANS]{lightgreen} Incorrectly entered command! Tip: !arclient [player id in database or his SteamID in format U:]"
+		"ru"	"{lightred}[CLANS]{lightgreen} Неверно введена комадна! !arclient [ID игрока из базы или его SteamID формата U:]"
+	}
+	
+	"c_Wrongjclan"
+	{
+		"en"	"{lightred}[CLANS]{lightgreen} Incorrectly entered command! Tip: !jclan [clan id]"
+		"ru"	"{lightred}[CLANS]{lightgreen} Неверно введена комадна! !jclan [clan id]"
+	}
+	
+	"c_PlayerIsntAuth"
+	{
+		"en"	"{lightred}[CLANS]{lightgreen} Player isn't authorized!"
+		"ru"	"{lightred}[CLANS]{lightgreen} Игрок не авторизован!"
+	}
+	
+	"c_PlayerInThisClan"
+	{
+		"en"	"{lightred}[CLANS]{lightgreen} Player is already in this clan!"
+		"ru"	"{lightred}[CLANS]{lightgreen} Игрок уже в этом клане!"
+	}
+	
+	"c_PlayerAddedToClan"
+	{
+		"#format"	"{1:s}"
+		"en"	"{green}[CLANS]{lightgreen} Player was added to clan {1}!"
+		"ru"	"{green}[CLANS]{lightgreen} Игрок добавлен в клан {1}!"
+	}
+	
+	"c_YouAreInvited"
+	{
+		"#format"	"{1:s}"
+		"en"	"{green}[CLANS]{lightgreen} You were invited to clan {1}. Type !caccept to accept the invitation"
+		"ru"	"{green}[CLANS]{lightgreen} Вы были приглашены в клан {1}. Введите !caccept, чтобы принять приглашение."
+	}
+	
+	"c_NotEnoughCoins"
+	{
+		"en"	"{lightred}[CLANS]{lightgreen} The clan hasn't enough coins."
+		"ru"	"{lightred}[CLANS]{lightgreen} На счету клана недостаточно средств."
+	}
+	
+	"t_KillsDesc"
+	{
+		"en"	"By kills (desc.)"
+		"ru"	"По убийствам (убыв.)"
+	}
+	
+	"t_KillsAsc"
+	{
+		"en"	"By kills (asc.)"
+		"ru"	"По убийствам (возр.)"
+	}
+	
+	"t_DeathsDesc"
+	{
+		"en"	"By deaths (desc.)"
+		"ru"	"По смертям (убыв.)"
+	}
+	
+	"t_DeathsAsc"
+	{
+		"en"	"By deaths (asc.)"
+		"ru"	"По смертям (возр.)"
+	}
+	
+	"t_TimeDesc"
+	{
+		"en"	"By lifetime (desc.)"
+		"ru"	"По времени сущ. (убыв.)"
+	}
+	
+	"t_TimeAsc"
+	{
+		"en"	"By lifetime (asc.)"
+		"ru"	"По времени сущ. (возр.)"
+	}
+	
+	"t_MembersDesc"
+	{
+		"en"	"By members (desc.)"
+		"ru"	"По кол-ву участников (убыв.)"
+	}
+	
+	"t_MembersAsc"
+	{
+		"en"	"By members (asc.)"
+		"ru"	"По кол-ву участников (возр.)"
+	}
+	
+	"t_CoinsDesc"
+	{
+		"en"	"By coins (desc.)"
+		"ru"	"По кол-ву монет (убыв.)"
+	}
+	
+	"t_CoinsAsc"
+	{
+		"en"	"By coins (asc.)"
+		"ru"	"По кол-ву монет (возр.)"
+	}
+	
+	"c_SetCoins1"
+	{
+		"en"	"{green}[CLANS]{lightgreen} Input number of coins to set in clan. If you want to give/take coins"
+		"ru"	"{green}[CLANS]{lightgreen} Введите количество монет, которые установить клану. Если хотите добавить/забрать монеты"
+	}
+	
+	"c_SetCoins2"
+	{
+		"en"	"{lightgreen} input the sign before a number without space. Input \"cancel\" to cancel"
+		"ru"	"{lightgreen} то укажите знак перед числом без пробела. Чтобы отменить, введите \"отмена\""
+	}
+	
+	"c_ClanResetCmd"
+	{
+		"#format"	"{1:i},{2:s}"
+		"en"	"{green}[CLANS]{lightgreen} Input {1} to reset clan {2}. Input other number to cancel."
+		"ru"	"{green}[CLANS]{lightgreen} Введите {1}, чтобы обнулить клан {2}. Чтобы отменить, введите другое число."
+	}
+	
+	"c_ClanDeleteCmd"
+	{
+		"#format"	"{1:i},{2:s}"
+		"en"	"{green}[CLANS]{lightgreen} Input {1} to delete clan {2}. Input other number to cancel."
+		"ru"	"{green}[CLANS]{lightgreen} Введите {1}, чтобы удалить клан {2}. Чтобы отменить, введите другое число."
+	}
+	
+	"c_PlayerResetCmd"
+	{
+		"#format"	"{1:i},{2:s}"
+		"en"	"{green}[CLANS]{lightgreen} Input {1} to reset player {2}. Input other number to cancel."
+		"ru"	"{green}[CLANS]{lightgreen} Введите {1}, чтобы обнулить игрока {2}. Чтобы отменить, введите другое число."
+	}
+	
+	"c_PlayerDeleteCmd"
+	{
+		"#format"	"{1:i},{2:s}"
+		"en"	"{green}[CLANS]{lightgreen} Input {1} to delete player {2}. {lightgreen}Input other number to cancel."
+		"ru"	"{green}[CLANS]{lightgreen} Введите {1}, чтобы удалить игрока {2}. {lightgreen}Чтобы отменить, введите другое число."
+	}
+	
+	"c_EnterClanName"
+	{
+		"en"	"{green}[CLANS]{lightgreen} Enter the clan name in the chat."
+		"ru"	"{green}[CLANS]{lightgreen} Введите название клана в чате."
+	}
+	
+	"c_RenameClan"
+	{
+		"en"	"{green}[CLANS]{lightgreen} Enter the clan name in the chat. Type \"cancel\" to cancel"
+		"ru"	"{green}[CLANS]{lightgreen} Введите название клана в чате. Для отмены введите \"отмена\""
+	}
+	
+	"c_RenameClanSuccess"
+	{
+		"en"	"{green}[CLANS]{lightgreen} You successfully renamed the clan!"
+		"ru"	"{green}[CLANS]{lightgreen} Вы успешно переименовали клан!"
+	}
+
+	"c_JoinSuccess"
+	{
+		"en"	"{green}[CLANS]{lightgreen} You successfully joined the clan!"
+		"ru"	"{green}[CLANS]{lightgreen} Вы успешно вступили в клан!"
+	}
+	
+	"c_YouCantCreateClan"
+	{
+		"en"	"{lightred}[CLANS]{lightgreen} You can't create a clan!"
+		"ru"	"{lightred}[CLANS]{lightgreen} Вы не можете создавать клан!"
+	}
+
+	"c_CoinsIncorrect"
+	{
+		"en"	"{lightred}[CLANS]{lightgreen} The number of coins would be incorrect! So the changing of amount of coins canceled."
+		"ru"	"{lightred}[CLANS]{lightgreen} Число монет будет некорректным! Поэтому изменение их количества отменено."
+	}
+	
+	"c_SetSlots1"
+	{
+		"en"	"{green}[CLANS]{lightgreen} Input number of slots to set in clan. If you want to give/take slots"
+		"ru"	"{green}[CLANS]{lightgreen} Введите количество слотов, которые установить клану. Если хотите добавить/забрать слоты"
+	}
+	
+	"c_SetSlots2"
+	{
+		"en"	"{lightgreen} input the sign before a number without space. Input \"cancel\" to cancel"
+		"ru"	"{lightgreen} то укажите знак перед числом без пробела. Чтобы отменить, введите \"отмена\""
+	}
+	
+	"c_SlotsIncorrect"
+	{
+		"en"	"{lightred}[CLANS]{lightgreen} The number of slots would be incorrect! So the changing of amount of slots canceled."
+		"ru"	"{lightred}[CLANS]{lightgreen} Число слотов будет некорректным! Поэтому изменение их количества отменено."
+	}
+	
+	"c_SlotsNow"
+	{
+		"#format"	"{1:s},{2:i}"
+		"en"	"{green}[CLANS]{lightgreen} Clan {1} has {2} slots now."
+		"ru"	"{green}[CLANS]{lightgreen} Теперь у клана {1} {2} слотов."
+	}
+	
+	"c_TranferCoins"
+	{
+		"#format"	"{1:i}"
+		"en"	"{green}[CLANS]{lightgreen} Enter the number of coins to transfer to clan. You have {1} coins now."
+		"ru"	"{green}[CLANS]{lightgreen} Введите количество монет для передачи. Сейчас у вас {1} монет"
+	}
+	
+	"c_TranferFailed"
+	{
+		"en"	"{lightred}[CLANS]{lightgreen} The transfer of the coins to the clan failed!"
+		"ru"	"{lightred}[CLANS]{lightgreen} Передача монет клану не удалась!"
+	}
+	
+	"c_TranferSuccess"
+	{
+		"en"	"{green}[CLANS]{lightgreen} You successfully transferred the coins to the clan!"
+		"ru"	"{green}[CLANS]{lightgreen} Вы успешно передали монеты клану!"
+	}
+	
+	"c_TranferFrom"
+	{
+		"#format"	"{1:s},{2:i}"
+		"en"	"{green}[CLANS]{lightgreen} Clan {1} has transferred to your clan {2} coins!"
+		"ru"	"{green}[CLANS]{lightgreen} Клан {1} перевел в Ваш клан {2} монет!"
+	}
+
+	"Time"
+	{
+		"#format"	"{1:i},{2:i},{3:i},{4:i},{5:i}"
+		"en"	"{1} m {2} d {3} h {4} min {5} s"
+		"ru"	"{1} м {2} д {3} ч {4} мин {5} с"
+	}
+	
+	"Member"
+	{
+		"en"	"Member"
+		"ru"	"Участник"
+	}
+	
+	"Elder"
+	{
+		"en"	"Elder"
+		"ru"	"Старейшина"
+	}
+	
+	"Coleader"
+	{
+		"en"	"Co-leader"
+		"ru"	"Зам. лидера"
+	}
+	
+	"Leader"
+	{
+		"en"	"Leader"
+		"ru"	"Лидер"
+	}
+	
+	"c_TypeChangeSuccess"
+	{
+		"en"	"{green}[CLANS]{lightgreen} The clan type has been successfully changed."
+		"ru"	"{green}[CLANS]{lightgreen} Тип клана успешно изменен."
+	}
+	
+	"c_JoinClosedClan"
+	{
+		"en"	"{lightred}[CLANS]{lightgreen} The clan has type \"invite only\". You can't join it."
+		"ru"	"{lightred}[CLANS]{lightgreen} Тип клана \"Только по приглашению\". Вы не можете вступить в него."
+	}
+	
+	"c_ChangeRoleSuccess"
+	{
+		"en"	"{green}[CLANS]{lightgreen} The role of the player has been successfully changed."
+		"ru"	"{green}[CLANS]{lightgreen} Роль игрока успешно изменена."
+	}
+	
+	"NoClans"
+	{
+		"en"	"{lightred}[CSHOP] {lightgreen}There are no clans to show!"
+		"ru"	"{lightred}[CSHOP] {lightgreen}Нет кланов для вывода!"
+	}
+	
+	"NoPlayers"
+	{
+		"en"	"{lightred}[CSHOP] {lightgreen}There are no players to show!"
+		"ru"	"{lightred}[CSHOP] {lightgreen}Нет игроков для вывода!"
+	}
+	
+	"c_WrongRoleFlag"
+	{
+		"en"	"{lightred}[CSHOP] {lightgreen}Wrong role flag inputted!"
+		"ru"	"{lightred}[CSHOP] {lightgreen}Неверно задана роль!"
+	}
+
+	"c_AdminSetCoins"
+	{
+		"#format"	"{1:s},{2:i}"
+		"en"	"{green}[CLANS]{lightgreen} Administator {1} set your clan's coins to {2}."
+		"ru"	"{green}[CLANS]{lightgreen} Администратор {1} установил вашему клану {2} монет."
+	}
+
+	"c_AdminGaveCoins"
+	{
+		"#format"	"{1:s},{2:i}"
+		"en"	"{green}[CLANS]{lightgreen} Administator {1} gave {2} coins to your clan."
+		"ru"	"{green}[CLANS]{lightgreen} Администратор {1} дал вашему клану {2} монет."
+	}
+
+	"c_AdminTookCoins"
+	{
+		"#format"	"{1:s},{2:i}"
+		"en"	"{green}[CLANS]{lightgreen} Administator {1} took {2} coins from your clan."
+		"ru"	"{green}[CLANS]{lightgreen} Администратор {1} забрал у вашего клана {2} монет."
+	}
+
+	"c_AdminResetPlayer"
+	{
+		"#format"	"{1:s}"
+		"en"	"{green}[CLANS]{lightgreen} Administator {1} reset your stats."
+		"ru"	"{green}[CLANS]{lightgreen} Администратор {1} обнулил Вашу статистику."
+	}
+
+	"c_AdminResetClan"
+	{
+		"#format"	"{1:s}"
+		"en"	"{green}[CLANS]{lightgreen} Administator {1} reset your clan stats."
+		"ru"	"{green}[CLANS]{lightgreen} Администратор {1} обнулил статистику Вашего клана."
+	}
+
+	"c_AdminDeletePlayer"
+	{
+		"#format"	"{1:s}"
+		"en"	"{green}[CLANS]{lightgreen} Administator {1} kicked you out of clan."
+		"ru"	"{green}[CLANS]{lightgreen} Администратор {1} кикнул Вас из клана."
+	}
+
+	"c_AdminDeleteClan"
+	{
+		"#format"	"{1:s}"
+		"en"	"{green}[CLANS]{lightgreen} Administator {1} deleted your clan."
+		"ru"	"{green}[CLANS]{lightgreen} Администратор {1} удалил Ваш клан."
+	}
+
+	"c_AdminSetSlots"
+	{
+		"#format"	"{1:s},{2:i}"
+		"en"	"{green}[CLANS]{lightgreen} Administator {1} set your clan's slots to {2}."
+		"ru"	"{green}[CLANS]{lightgreen} Администратор {1} установил вашему клану {2} слотов."
+	}
+
+	"c_AdminGaveSlots"
+	{
+		"#format"	"{1:s},{2:i}"
+		"en"	"{green}[CLANS]{lightgreen} Administator {1} gave {2} slots to your clan."
+		"ru"	"{green}[CLANS]{lightgreen} Администратор {1} дал вашему клану {2} слотов."
+	}
+
+	"c_AdminTookSlots"
+	{
+		"#format"	"{1:s},{2:i}"
+		"en"	"{green}[CLANS]{lightgreen} Administator {1} took {2} slots from your clan."
+		"ru"	"{green}[CLANS]{lightgreen} Администратор {1} забрал у вашего клана {2} слотов."
+	}
+
+	"c_RoleChangedTo"
+	{
+		"#format"	"{1:s},{2:s}"
+		"en"	"{green}[CLANS]{lightgreen} {1} set your role to {2}."
+		"ru"	"{green}[CLANS]{lightgreen} {1} установил Вам роль {2}."
+	}
+
+	"c_TypeChangedTo"
+	{
+		"#format"	"{1:s},{2:s}"
+		"en"	"{green}[CLANS]{lightgreen} {1} set clan type to {2}."
+		"ru"	"{green}[CLANS]{lightgreen} {1} установил тип клана {2}."
+	}
+
+	"c_AdminChangedLeader"
+	{
+		"#format"	"{1:s},{2:s}"
+		"en"	"{green}[CLANS]{lightgreen} Administator {1} set {2} as your clan leader."
+		"ru"	"{green}[CLANS]{lightgreen} Администратор {1} поставил {2} лидером Вашего клана."
+	}
+
+	"c_ChangedLeader"
+	{
+		"#format"	"{1:s},{2:s}"
+		"en"	"{green}[CLANS]{lightgreen} {1} set new clan leader - {2}."
+		"ru"	"{green}[CLANS]{lightgreen} {1} поставил нового лидера Вашего клана - {2}."
+	}
+
+	"c_KickYou"
+	{
+		"#format"	"{1:s}"
+		"en"	"{green}[CLANS]{lightgreen} {1} kick you out of the clan."
+		"ru"	"{green}[CLANS]{lightgreen} {1} выгнал Вас из клана."
+	}
+
+	"c_PermGiven"
+	{
+		"#format"	"{1:s}"
+		"en"	"{green}[CLANS]{lightgreen} You gave permission to create a clan to player {1}"
+		"ru"	"{green}[CLANS]{lightgreen} Вы выдали разрешение на создание клана игроку {1}"
+	}
+
+	"c_PermGot"
+	{
+		"#format"	"{1:s}"
+		"en"	"{green}[CLANS]{lightgreen} {1} gave permission to create a clan to you"
+		"ru"	"{green}[CLANS]{lightgreen} Вы получили разрешение на создание клана от {1}"
+	}
+	
+	"c_YouCantCreateClanDueToCD"
+	{
+		"#format"	"{1:i}"
+		"en"	"{lightred}[CLANS]{lightgreen} Clan creation will be available in {1} minutes!"
+		"ru"	"{lightred}[CLANS]{lightgreen} Создание клана будет доступно через {1} минут!"
+	}
+	
+	"c_ClanChatWrite"
+	{
+		"en"	"{green}[CLANS]{lightgreen} Input text to clan chat"
+		"ru"	"{green}[CLANS]{lightgreen} Введите текст для кланового чата"
+	}
+	
+	"c_ClanTagSetSuccess"
+	{
+		"en"	"{green}[CLANS]{lightgreen} You successfully changed clan tag setting."
+		"ru"	"{green}[CLANS]{lightgreen} Вы успешно изменили настройку установки клан тега."
+	}
+}
