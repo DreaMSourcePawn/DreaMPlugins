@@ -1,0 +1,11 @@
+	"shopcredits"
+	{
+		"en"	"Shop credits"
+		"ru"	"Кредиты для SHOP"
+	}
+	
+	"ShopCredits"
+	{
+		"en"	"Shop credits"
+		"ru"	"Кредиты для SHOP"
+	}

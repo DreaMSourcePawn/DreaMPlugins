@@ -1,0 +1,5 @@
+	"damage"
+	{
+		"en"	"Damage"
+		"ru"	"Урон"
+	}
