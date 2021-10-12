@@ -1,0 +1,23 @@
+	"shopcreditsDesc"
+	{
+		"en"	"Give your clan shop credits"
+		"ru"	"Выдает клану кредиты для SHOP"
+	}
+
+	"1000 credits"
+	{
+		"en"	"1000 credits"
+		"ru"	"1000 кредитов"
+	}
+	
+	"10000 credits"
+	{
+		"en"	"10000 credits"
+		"ru"	"10000 кредитов"
+	}
+	
+	"100000 credits"
+	{
+		"en"	"100000 credits"
+		"ru"	"100000 кредитов"
+	}

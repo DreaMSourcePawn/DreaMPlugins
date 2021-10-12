@@ -1,0 +1,11 @@
+	"VIP1"
+	{
+		"en"	"VIP NAME"
+		"ru"	"НАЗВАНИЕ VIP"
+	}
+
+	"VIP1desc"
+	{
+		"en"	"Any desc here"
+		"ru"	"Любое описание здесь"
+	}

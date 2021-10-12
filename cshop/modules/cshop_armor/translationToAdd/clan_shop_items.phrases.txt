@@ -1,0 +1,11 @@
+	"Armor"
+	{
+		"en"	"Armor"
+		"ru"	"Броня"
+	}
+	
+	"ArmorDesc"
+	{
+		"en"	"Give armor at the round start"
+		"ru"	"Выдает броню при старте"
+	}

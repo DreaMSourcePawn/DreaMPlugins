@@ -1,0 +1,5 @@
+	"hp_armor"
+	{
+		"en"	"HP and Armor"
+		"ru"	"Здоровье и броня"
+	}
