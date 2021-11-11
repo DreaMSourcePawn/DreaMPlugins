@@ -79,7 +79,7 @@ public Action Death(Handle event, const char[] name, bool db)
 		}
 		if(iVictimDB != -1)
 		{
-			FormatEx(sQuery, sizeof(sQuery), "UPDATE `clans_table` SET `clan_coins` = `clan_coins` - '%d' WHERE `clan_id` = (SELECT `player_clanid` FROM `players_table` WHERE `player_id` = '%d')", g_iCoinsByDeath, iVictimDB);
+			FormatEx(sQuery, sizeof(sQuery), "UPDATE `clans_table` SET `clan_coins` = (CASE WHEN `clan_coins`-'%d' < 0 THEN 0 ELSE `clan_coins`-'%d' END) WHERE `clan_id` = (SELECT `player_clanid` FROM `players_table` WHERE `player_id` = '%d')", g_iCoinsByDeath, g_iCoinsByDeath, iVictimDB);
 			txn.AddQuery(sQuery);
 			bExecuteToDB = true;
 		}
