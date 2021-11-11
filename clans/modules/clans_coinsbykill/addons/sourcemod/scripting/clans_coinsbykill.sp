@@ -1,6 +1,8 @@
 #include <sourcemod>
 #include <clans>
 
+Database g_DB = null;
+
 Handle 	g_hCoinsByKill,
 		g_hCoinsByDeath;
 
@@ -12,7 +14,7 @@ public Plugin myinfo =
 	name = "[Clans] Coins by kill", 
 	author = "Dream", 
 	description = "Give/take coins when player kills/dies", 
-	version = "1.1", 
+	version = "1.2", 
 } 
 
 public void OnPluginStart() 
@@ -28,6 +30,23 @@ public void OnPluginStart()
 	AutoExecConfig(true, "clans_coinsbykill", "clans");
 	
 	HookEvent("player_death", Death);
+	
+	if(Clans_AreClansLoaded())
+		Clans_OnClansLoaded();
+}
+
+public void OnPluginEnd()
+{
+	UnhookEvent("player_death", Death);
+}
+
+public void Clans_OnClansLoaded()
+{
+	g_DB = Clans_GetClanDatabase();
+	if(g_DB == null)
+	{
+		LogError("[CLANS COINS] Failed to get database. Use 1.1 give system");
+	}
 }
 
 public void OnConVarChange(Handle hCvar, const char[] oldValue, const char[] newValue)
@@ -40,9 +59,47 @@ public void OnConVarChange(Handle hCvar, const char[] oldValue, const char[] new
 
 public Action Death(Handle event, const char[] name, bool db)
 {
-	int victim = GetClientOfUserId(GetEventInt(event, "userid"));
-	int attacker = GetClientOfUserId(GetEventInt(event, "attacker"));
-	
+	int iVictim = GetClientOfUserId(GetEventInt(event, "userid"));
+	int iAttacker = GetClientOfUserId(GetEventInt(event, "attacker"));
+	if(!Clans_AreInDifferentClans(iVictim, iAttacker))
+		return Plugin_Continue;
+	DataPack dp = CreateDataPack();
+	if(g_DB != null)
+	{
+		bool bExecuteToDB = false;
+		int iVictimDB = Clans_GetClientID(iVictim);
+		int iAttackerDB = Clans_GetClientID(iAttacker);
+		Transaction txn = SQL_CreateTransaction();
+		char sQuery[300];
+		if(iAttackerDB != -1)
+		{
+			FormatEx(sQuery, sizeof(sQuery), "UPDATE `clans_table` SET `clan_coins` = `clan_coins` + '%d' WHERE `clan_id` = (SELECT `player_clanid` FROM `players_table` WHERE `player_id` = '%d')", g_iCoinsByKill, iAttackerDB);
+			txn.AddQuery(sQuery);
+			bExecuteToDB = true;
+		}
+		if(iVictimDB != -1)
+		{
+			FormatEx(sQuery, sizeof(sQuery), "UPDATE `clans_table` SET `clan_coins` = `clan_coins` - '%d' WHERE `clan_id` = (SELECT `player_clanid` FROM `players_table` WHERE `player_id` = '%d')", g_iCoinsByDeath, iVictimDB);
+			txn.AddQuery(sQuery);
+			bExecuteToDB = true;
+		}
+		if(bExecuteToDB)
+			SQL_ExecuteTransaction(g_DB, txn, INVALID_FUNCTION, OnTXNFailure);
+	}
+	else
+	{
+		dp.WriteCell(iVictim);
+		dp.WriteCell(iAttacker);
+		dp.Reset();
+		CreateTimer(0.1, GiveTakeCoins, dp, TIMER_DATA_HNDL_CLOSE);
+	}
+	return Plugin_Continue;
+}
+
+Action GiveTakeCoins(Handle timer, DataPack dp)
+{
+	int victim = dp.ReadCell();
+	int attacker = dp.ReadCell();
 	int victimClan = Clans_GetOnlineClientClan(victim);
 	int attackerClan = Clans_GetOnlineClientClan(attacker);
 	
@@ -62,5 +119,9 @@ public Action Death(Handle event, const char[] name, bool db)
 				Clans_GiveClanCoins(attackerClan, g_iCoinsByKill);
 		}
 	}
-	return Plugin_Continue;
+}
+
+void OnTXNFailure(Database db, any data, int numQueries, const char[] error, int failIndex, any[] queryData)
+{
+	LogError("[CLANS COINS] Failed on %d/%d query: %s", failIndex, numQueries, error);
 }
