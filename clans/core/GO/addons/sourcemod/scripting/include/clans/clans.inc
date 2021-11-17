@@ -86,6 +86,16 @@ native bool Clans_SetClanCoins(int clanid, int coins);
 native int Clans_GetClanMembers(int clanid);
 
 /**
+ * Get all online clients in some clan
+ *
+ * @param int clanid - clan, whose members are looking for
+ * @param ArrayList memberList - list of online players in some clan
+ *
+ * @noreturn
+ */
+native void Clans_GetClanMembersOnline(int clanid, ArrayList memberList);
+
+/**
  * Get max number of players in clan
  *
  * @param		clanid - clan's index

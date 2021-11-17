@@ -47,7 +47,7 @@ void RegCVars()
 	g_iRChangeRole = GetRolesForPerm(buff);
 	HookConVarChange(g_hRChangeRole, OnConVarChange);
 
-	g_hLogs = CreateConVar("sm_clans_logs", "0", "Flag for logging players' actions: 2 - log to file (disabled), 1 - log to sqlite, 0 - not to log", 0, true, 0.0, true, 1.0);
+	g_hLogs = CreateConVar("sm_clans_logs", "0", "Flag for logging players' actions: 3 - log to file (one log file), 2 - log to file (some log files, name of one equals to current date), 1 - log to sqlite, 0 - not to log", 0, true, 0.0, true, 3.0);
 	g_iLogs = GetConVarInt(g_hLogs);
 	HookConVarChange(g_hLogs, OnConVarChange);
 

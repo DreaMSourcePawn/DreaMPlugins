@@ -43,7 +43,7 @@ void DeleteExpiredRecords()
  */
 void DB_LogAction2(int client, bool cid, int clanid, const char[] action, int toWhomP, bool wid, int toWhomCID, int type)
 {
-	char query[800];
+	char query[1500];
 	char clientName[MAX_NAME_LENGTH+1], clanName[MAX_NAME_LENGTH+1], toWhomPN[MAX_NAME_LENGTH+1], toWhomCN[MAX_NAME_LENGTH+1];
 	int clientID = -1;
 	if(cid)
@@ -84,11 +84,31 @@ void DB_LogAction2(int client, bool cid, int clanid, const char[] action, int to
 	int time = GetTime();
 	char c_time[50];
 	FormatTime(c_time, sizeof(c_time), "%c", time);
-	NameToDB(clientName, sizeof(clientName));
-	NameToDB(clanName, sizeof(clanName));
-	NameToDB(toWhomPN, sizeof(toWhomPN));
-	NameToDB(toWhomCN, sizeof(toWhomCN));
-	FormatEx(query, sizeof(query), "INSERT INTO `logs` VALUES ('%d', '%s', '%d', '%s', '%s', '%d', '%s', '%d', '%s', '%d', '%d', '%s')", clientID, clientName, clanid, clanName, action, toWhomPID, toWhomPN, toWhomCID, toWhomCN, type, time, c_time);
+	char clientNameEscaped[MAX_NAME_LENGTH*2+1],
+		 clanNameEscaped[MAX_CLAN_NAME*2+1],
+		 toWhomPNEscaped[MAX_NAME_LENGTH*2+1],
+		 toWhomCNEscaped[MAX_CLAN_NAME*2+1];
+	if(!g_hLogDB.Escape(clientName, clientNameEscaped, sizeof(clientNameEscaped)))
+	{
+		LogError("[CLANS] Failed to escape the clientName in LogAction2!");
+		return;
+	}
+	if(!g_hLogDB.Escape(clanName, clanNameEscaped, sizeof(clanNameEscaped)))
+	{
+		LogError("[CLANS] Failed to escape the clanName in LogAction2!");
+		return;
+	}
+	if(!g_hLogDB.Escape(toWhomPN, toWhomPNEscaped, sizeof(toWhomPNEscaped)))
+	{
+		LogError("[CLANS] Failed to escape the toWhomPN in LogAction2!");
+		return;
+	}
+	if(!g_hLogDB.Escape(toWhomCN, toWhomCNEscaped, sizeof(toWhomCNEscaped)))
+	{
+		LogError("[CLANS] Failed to escape the toWhomCN in LogAction2!");
+		return;
+	}
+	FormatEx(query, sizeof(query), "INSERT INTO `logs` VALUES ('%d', '%s', '%d', '%s', '%s', '%d', '%s', '%d', '%s', '%d', '%d', '%s')", clientID, clientNameEscaped, clanid, clanNameEscaped, action, toWhomPID, toWhomPNEscaped, toWhomCID, toWhomCNEscaped, type, time, c_time);
 	SQL_TQuery(g_hLogDB, DB_LogError, query, 0);
 }
 
@@ -195,7 +215,7 @@ void DB_LogCallback(Handle owner, Handle hndl, const char[] error, DataPack dp)
 			 targetName[MAX_NAME_LENGTH+1], 
 			 targetClanName[MAX_NAME_LENGTH+1], 
 			 action[300],
-			 query[800];
+			 query[1500];
 		clientClanName = "None"; targetClanName = "None";
 		int clientID = dp.ReadCell();
 		dp.ReadString(clientName, sizeof(clientName));
@@ -221,22 +241,45 @@ void DB_LogCallback(Handle owner, Handle hndl, const char[] error, DataPack dp)
 		}
 		
 		int time = GetTime();
-		char c_time[50];
-		NameToDB(clientName, sizeof(clientName));
-		NameToDB(clientClanName, sizeof(clientClanName));
-		NameToDB(targetName, sizeof(targetName));
-		NameToDB(targetClanName, sizeof(targetClanName));
+		char c_time[50],
+			 clientNameEscaped[MAX_NAME_LENGTH*2+1],
+			 clientClanNameEscaped[MAX_NAME_LENGTH*2+1],
+			 targetNameEscaped[MAX_NAME_LENGTH*2+1],
+			 targetClanNameEscaped[MAX_CLAN_NAME*2+1];
+		if(!g_hLogDB.Escape(clientName, clientNameEscaped, sizeof(clientNameEscaped)))
+		{
+			LogError("[CLANS] Failed to escape the clientName in LogCallback!");
+			return;
+		}
+		if(!g_hLogDB.Escape(clientClanName, clientClanNameEscaped, sizeof(clientClanNameEscaped)))
+		{
+			LogError("[CLANS] Failed to escape the clientClanName in LogCallback!");
+			return;
+		}
+		if(!g_hLogDB.Escape(targetName, targetNameEscaped, sizeof(targetNameEscaped)))
+		{
+			LogError("[CLANS] Failed to escape the targetName in LogCallback!");
+			return;
+		}
+		if(!g_hLogDB.Escape(targetClanName, targetClanNameEscaped, sizeof(targetClanNameEscaped)))
+		{
+			LogError("[CLANS] Failed to escape the targetClanName in LogCallback!");
+			return;
+		}
 		
-		if(g_iLogs == 2)	//ToFile
+		if(g_iLogs > 1)	//ToFile
 		{
 			char fileName[150],
 				 date[30];
 			File file;
 			FormatTime(c_time, sizeof(c_time), "%H:%M:%S", time);
 			FormatTime(date, sizeof(date), "%Y%m%d", time);
-			FormatEx(fileName, sizeof(fileName), "addons/sourcemod/logs/clans/clans_%s.log", date);
 			if(!DirExists("addons/sourcemod/logs/clans"))
-				CreateDirectory("addons/sourcemod/logs/clans", 777);
+				CreateDirectory("addons/sourcemod/logs/clans", 509);
+			if(g_iLogs == 2)	//log file name equals to current date
+				FormatEx(fileName, sizeof(fileName), "addons/sourcemod/logs/clans/clans_%s.log", date);
+			else
+				FormatEx(fileName, sizeof(fileName), "addons/sourcemod/logs/clans/clans.log");
 			file = OpenFile(fileName, "a");
 			if(file != null)
 			{
@@ -252,7 +295,7 @@ void DB_LogCallback(Handle owner, Handle hndl, const char[] error, DataPack dp)
 		else	//To sqlite
 		{
 			FormatTime(c_time, sizeof(c_time), "%c", time);
-			FormatEx(query, sizeof(query), "INSERT INTO `logs` VALUES ('%d', '%s', '%d', '%s', '%s', '%d', '%s', '%d', '%s', '%d', '%d', '%s')", clientID, clientName, clientClanid, clientClanName, action, targetID, targetName, targetClanid, targetClanName, type, time, c_time);
+			FormatEx(query, sizeof(query), "INSERT INTO `logs` VALUES ('%d', '%s', '%d', '%s', '%s', '%d', '%s', '%d', '%s', '%d', '%d', '%s')", clientID, clientNameEscaped, clientClanid, clientClanNameEscaped, action, targetID, targetNameEscaped, targetClanid, targetClanNameEscaped, type, time, c_time);
 			SQL_TQuery(g_hLogDB, DB_LogError, query, 0);
 		}
 	}

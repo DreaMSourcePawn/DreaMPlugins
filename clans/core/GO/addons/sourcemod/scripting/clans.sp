@@ -12,7 +12,7 @@
 #define ClanClient playerID[client]	//Айди игрока в базе данных
 #define BUFF_SIZE 600
 #define LOG_SIZE 100
-#define PLUGIN_VERSION "1.82"
+#define PLUGIN_VERSION "1.833"
 //================================================
 //Flag for CSS v34
 bool g_bCSS34 = false;
@@ -134,7 +134,8 @@ Handle	g_hACMOpened, 		//AdminClanMenuOpened
 		g_hClientDeleted,	//ClientDeleted
 		g_hClanSelectedInList,	//Clans_OnClanSelectedInList	1.8v
 		g_hClanMemberSelectedInList,	//Clans_OnClanMemberSelectedInList	1.8v NOT DONE
-		g_hOnClanCoinsGive;		//Clans_OnClanCoinsGive	1.8v
+		g_hOnClanCoinsGive,		//Clans_OnClanCoinsGive	1.8v
+		g_hOnClanClientLoaded;	//Clans_OnClientLoaded 1.83v
 
 //=====================Permissions=====================//
 Handle	g_hRInvitePerm,				//Invite players to clan
@@ -222,10 +223,10 @@ public void OnPluginStart()
 
 	ConnectToDatabase();
 	
-	CreateTimer(2.0, ClansLoaded, _, TIMER_FLAG_NO_MAPCHANGE);
+	ClansLoaded();
 }
 
-Action ClansLoaded(Handle timer)
+void ClansLoaded()
 {
 	g_bClansLoaded = true;
 	F_OnClansLoaded();
@@ -263,6 +264,12 @@ Action Death(Handle event, const char[] name, bool db)
 	if (victim && attacker && (GetClientTeam(victim) != GetClientTeam(attacker)) && AreClientsInDifferentClans(victim, attacker))
 	{
 		KillFunc(attackerInClanDB, victimInClanDB, 1);
+		if(CheckForLog(LOG_KILLS) && (victimInClanDB != -1 || attackerInClanDB != -1))
+		{
+			char log_buff[LOG_SIZE];
+			FormatEx(log_buff, sizeof(log_buff), "%T", "L_Kill", LANG_SERVER);
+			DB_LogAction(attacker, false, GetClientClanByID(attackerInClanDB), log_buff, victim, false, GetClientClanByID(victimInClanDB), LOG_KILLS);
+		}
 	}
 	return Plugin_Continue;
 }
@@ -641,7 +648,7 @@ Action SayHook(int client, const char[] command, int args)
 			char clanName[MAX_CLAN_NAME+1],
 				 clanPrevName[MAX_CLAN_NAME+1],
 				 buff[50],
-				 query[150];
+				 query[300];
 			char print_buff[BUFF_SIZE];
 			int clanid;
 			bool takeCoins = ADMIN_STYPE != 7;
@@ -678,17 +685,20 @@ Action SayHook(int client, const char[] command, int args)
 				clanName[MAX_CLAN_NAME] = '\0';
 			}
 			
+			char clanNameEscaped[MAX_CLAN_NAME*2+1];
+			g_hClansDB.Escape(clanName, clanNameEscaped, sizeof(clanNameEscaped));
 			DataPack dp = CreateDataPack();
 			GetClanName(clanid, clanPrevName, sizeof(clanPrevName));
-			NameToDB(clanPrevName, sizeof(clanPrevName));
-			NameToDB(clanName, sizeof(clanName));
+			/*NameToDB(clanPrevName, sizeof(clanPrevName));
+			NameToDB(clanName, sizeof(clanName));*/
 			dp.WriteCell(client);
 			dp.WriteCell(clanid);
 			dp.WriteString(clanPrevName);
 			dp.WriteString(clanName);
 			dp.WriteCell(takeCoins);
 			dp.Reset();
-			FormatEx(query, sizeof(query), "SELECT 1 FROM `clans_table` WHERE `clan_name` = '%s'", clanName);
+			PrintToChatAll("%s | %s | %s", clanName, buff, clanNameEscaped);
+			FormatEx(query, sizeof(query), "SELECT 1 FROM `clans_table` WHERE `clan_name` = '%s'", clanNameEscaped);
 			g_hClansDB.Query(DB_RenameClanCallback, query, dp);
 			renameClan[client] = false;
 			ADMIN_STYPE = -1;

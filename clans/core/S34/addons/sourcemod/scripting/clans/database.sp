@@ -91,14 +91,6 @@ void Upgrade1()
 	}
 	delete hQuery;
 }
-
-void NameToDB(char[] buff, int len)
-{
-	ReplaceString(buff, len, "'", "\\'");
-	ReplaceString(buff, len, "\\", "\\\\");
-	ReplaceString(buff, len, "`", "\\`");
-	ReplaceString(buff, len, "\"", "\\\"");
-}
 	//============================== CLANS КЛАНЫ ==============================//
 
 /*
@@ -119,15 +111,15 @@ void DB_CreateClan(int leaderid, char[] clanName, int createBy = -1)
 		createBy = leaderid;
 	GetClientName(leaderid, leaderName, sizeof(leaderName));
 	GetClientAuthId(leaderid, AuthId_Steam3, leaderAuth, sizeof(leaderAuth));
-	NameToDB(leaderName, sizeof(leaderName));
-	NameToDB(clanName, strlen(clanName));
+	char clanNameEscaped[MAX_CLAN_NAME*2+1];
+	g_hClansDB.Escape(clanName, clanNameEscaped, sizeof(clanNameEscaped));
 	data.WriteCell(leaderid);
 	data.WriteString(leaderName);
 	data.WriteString(leaderAuth);
 	data.WriteString(clanName);
 	data.WriteCell(createBy);
 	data.Reset();
-	FormatEx(query, sizeof(query), "SELECT * FROM `clans_table` WHERE `clan_name` = '%s'", clanName);
+	FormatEx(query, sizeof(query), "SELECT * FROM `clans_table` WHERE `clan_name` = '%s'", clanNameEscaped);
 	g_hClansDB.Query(DB_ClanNameCheckCallback, query, data);
 }
 
@@ -143,9 +135,11 @@ void DB_ClanNameCheckCallback(Handle owner, Handle hndl, const char[] error, Dat
 	}
 	else
 	{
-		char	leaderName[MAX_NAME_LENGTH],	//Имя лидера
+		char	leaderName[MAX_NAME_LENGTH+1],	//Имя лидера
 				leaderAuth[33],					//Аутентификатор лидера
-				clanName[MAX_CLAN_NAME+1];		//Название клана
+				clanName[MAX_CLAN_NAME+1],		//Название клана
+				leaderNameEscaped[MAX_NAME_LENGTH*2+1],
+				clanNameEscaped[MAX_CLAN_NAME*2+1];
 		int 	leaderid,						//айди лидера
 				createBy;						//айди, кто создает
 		
@@ -163,7 +157,7 @@ void DB_ClanNameCheckCallback(Handle owner, Handle hndl, const char[] error, Dat
 		}
 		else	//Имя не занято
 		{
-			char 	query[500],		//Запрос в базу данных
+			char 	query[1024],		//Запрос в базу данных
 					date[11];		//Дата создания клана
 			int 	creationTime,	//Время создания клана
 					clanid;			//Айди клана
@@ -181,10 +175,22 @@ void DB_ClanNameCheckCallback(Handle owner, Handle hndl, const char[] error, Dat
 			if(rSet == null || !rSet.FetchRow())
 				return;
 			clanid = rSet.FetchInt(0)+1;
+
+			if(!g_hClansDB.Escape(leaderName, leaderNameEscaped, sizeof(leaderNameEscaped)))
+			{
+				LogError("[CLANS] Failed to escape the leaderName in ClanNameCheckCallback!");
+				return;
+			}
+			if(!g_hClansDB.Escape(clanName, clanNameEscaped, sizeof(clanNameEscaped)))
+			{
+				LogError("[CLANS] Failed to escape the clanName in ClanNameCheckCallback!");
+				return;
+			}
+
 			//FormatEx(query, sizeof(query), "INSERT INTO `clans_table` (`clan_id`, `clan_name`, `leader_steam`, `leader_name`, `date_creation`, `time_creation`, `members`, `maxmembers`) VALUES ('%d', '%s', '%s', '%s', '%s', '%d', '%d', '%d');",
 			//++maxClanid, clanName, leaderAuth, leaderName, date, creationTime, 1, g_iStartSlotsInClan);
 			FormatEx(query, sizeof(query), "INSERT INTO `clans_table` (`clan_id`, `clan_name`, `leader_steam`, `leader_name`, `date_creation`, `time_creation`, `members`, `maxmembers`) VALUES ('%d', '%s', '%s', '%s', '%s', '%d', '%d', '%d');",
-			clanid, clanName, leaderAuth, leaderName, date, creationTime, 1, g_iStartSlotsInClan);
+			clanid, clanNameEscaped, leaderAuth, leaderNameEscaped, date, creationTime, 1, g_iStartSlotsInClan);
 			g_hClansDB.Query(DB_CreateClanCallback, query, data);
 			
 			//Заполняем поля игрока клана
@@ -197,6 +203,7 @@ void DB_ClanNameCheckCallback(Handle owner, Handle hndl, const char[] error, Dat
 			g_iClientData[leaderid][CLIENT_KILLS] = 0;
 			g_iClientData[leaderid][CLIENT_DEATHS] = 0;
 			g_iClientData[leaderid][CLIENT_TIME] = creationTime;
+			delete rSet;
 		}
 	}
 }
@@ -247,8 +254,8 @@ void DB_RenameClanCallback(Handle owner, Handle hndl, const char[] error, DataPa
 	{
 		int client = data.ReadCell();
 		int clanid = data.ReadCell();
-		char prevClanName[MAX_CLAN_NAME],
-			 newClanName[MAX_CLAN_NAME];
+		char prevClanName[MAX_CLAN_NAME+1],
+			 newClanName[MAX_CLAN_NAME+1];
 		data.ReadString(prevClanName, sizeof(prevClanName));
 		data.ReadString(newClanName, sizeof(newClanName));
 		bool takeCoins = data.ReadCell();
@@ -269,8 +276,18 @@ void DB_RenameClanCallback(Handle owner, Handle hndl, const char[] error, DataPa
 		CPrintToChat(client, print_buff);
 		if(CheckForLog(LOG_CLANACTION))
 		{
-			char log_buff[LOG_SIZE];
-			FormatEx(log_buff, sizeof(log_buff), "%T", "L_RenameClan", LANG_SERVER, prevClanName, newClanName);
+			char log_buff[LOG_SIZE],
+				 prevClanNameEscaped[MAX_CLAN_NAME*2+1],
+				 newClanNameEscaped[MAX_CLAN_NAME*2+1];
+			if(g_iLogs == 1)	//sqlite
+			{
+				g_hClansDB.Escape(prevClanName, prevClanNameEscaped, sizeof(prevClanNameEscaped));
+				g_hClansDB.Escape(newClanName, newClanNameEscaped, sizeof(newClanNameEscaped));
+				FormatEx(log_buff, sizeof(log_buff), "%T", "L_RenameClan", LANG_SERVER, prevClanNameEscaped, newClanNameEscaped);
+			}
+			else
+				FormatEx(log_buff, sizeof(log_buff), "%T", "L_RenameClan", LANG_SERVER, prevClanName, newClanName);
+
 			DB_LogAction(client, false, GetClientClanByID(ClanClient), log_buff, -1, true, clanid, LOG_CLANACTION);
 		}
 	}
@@ -438,10 +455,14 @@ bool DB_ChangeClanMaxMembers(int clanid, int amountToAdd)
     	
     
     if(maxMembers + amountToAdd > g_iMaxClanMembers || maxMembers + amountToAdd <= 0)
+	{
+		delete rSet;
     	return false;
+	}
     	
     FormatEx(query, sizeof(query), "UPDATE `clans_table` SET `maxmembers` = '%d' WHERE `clan_id` = '%d'", maxMembers + amountToAdd, clanid);
 	SQL_TQuery(g_hClansDB, DB_ClansError, query, 6);
+	delete rSet;
     return true;
 }
 
@@ -500,7 +521,7 @@ void DB_CreateClient(int client)
 	bool leader = g_iClientData[client][CLIENT_ROLE] == CLIENT_LEADER;
 	
 	SQL_LockDatabase(g_hClansDB);
-	char query[400];
+	char query[800];
 	FormatEx(query, sizeof(query), "SELECT MAX(`player_id`) FROM `players_table`");
 	DBResultSet rSet = SQL_Query(g_hClansDB, query);
 	SQL_UnlockDatabase(g_hClansDB);
@@ -508,10 +529,15 @@ void DB_CreateClient(int client)
 		return;
 	ClanClient = rSet.FetchInt(0)+1;
 	
-	NameToDB(g_sClientData[client][CLIENT_NAME], MAX_NAME_LENGTH);
+	char clientNameEscaped[MAX_NAME_LENGTH*2+1];
+	if(!g_hClansDB.Escape(g_sClientData[client][CLIENT_NAME], clientNameEscaped, sizeof(clientNameEscaped)))
+	{
+		LogError("[CLANS] Failed to escape the clientName in DB_CreateClient!");
+		return;
+	}
 	
 	FormatEx(query, sizeof(query), "INSERT INTO `players_table` (`player_id`, `player_name`, `player_steam`, `player_clanid`, `player_role`, `player_timejoining`) VALUES ('%d', '%s', '%s', '%d', '%d', '%d')",
-	ClanClient, g_sClientData[client][CLIENT_NAME], g_sClientData[client][CLIENT_STEAMID], g_iClientData[client][CLIENT_CLANID], g_iClientData[client][CLIENT_ROLE], g_iClientData[client][CLIENT_TIME]);
+	ClanClient, clientNameEscaped, g_sClientData[client][CLIENT_STEAMID], g_iClientData[client][CLIENT_CLANID], g_iClientData[client][CLIENT_ROLE], g_iClientData[client][CLIENT_TIME]);
 	g_hClansDB.Query(DB_ClientError, query, 0);
 	
 	if(leader)	//Снимаем старого лидера
@@ -536,6 +562,7 @@ void DB_CreateClient(int client)
 		g_hClansDB.Query(DB_ClansError, query, 7);
 	}
 	
+	delete rSet;
 	F_OnClientAdded(ClanClient, g_iClientData[client][CLIENT_CLANID]);
 }
 
@@ -550,7 +577,7 @@ void DB_CreateClient(int client)
 void DB_CreateClientByData(char[] name, const char[] auth, int clanid, int role)
 {
 	SQL_LockDatabase(g_hClansDB);
-	char query[400];
+	char query[800];
 	FormatEx(query, sizeof(query), "SELECT MAX(`player_id`) FROM `players_table`");
 	DBResultSet rSet = SQL_Query(g_hClansDB, query);
 	SQL_UnlockDatabase(g_hClansDB);
@@ -558,9 +585,14 @@ void DB_CreateClientByData(char[] name, const char[] auth, int clanid, int role)
 		return;
 	int idOfNewClient = rSet.FetchInt(0)+1;
 	int joinTime = GetTime();
-	NameToDB(name, strlen(name));
+	char nameEscaped[MAX_NAME_LENGTH*2+1];
+	if(!g_hClansDB.Escape(name, nameEscaped, sizeof(nameEscaped)))
+	{
+		LogError("[CLANS] Failed to escape the clientName in DB_CreateClientByData!");
+		return;
+	}
 	FormatEx(query, sizeof(query), "INSERT INTO `players_table` (`player_id`, `player_name`, `player_steam`, `player_clanid`, `player_role`, `player_timejoining`) VALUES ('%d', '%s', '%s', '%d', '%d', '%d')",
-	idOfNewClient, name, auth, clanid, role, joinTime);
+	idOfNewClient, nameEscaped, auth, clanid, role, joinTime);
 	g_hClansDB.Query(DB_ClientError, query, 0);
 	if(role == CLIENT_LEADER)
 	{		
@@ -583,6 +615,7 @@ void DB_CreateClientByData(char[] name, const char[] auth, int clanid, int role)
 			`clan_id` = '%d';", idOfNewClient, idOfNewClient, clanid);
 		g_hClansDB.Query(DB_ClansError, query, 7);
 	}
+	delete rSet;
 	F_OnClientAdded(idOfNewClient, clanid);
 }
 
@@ -625,10 +658,18 @@ void DB_LoadClientCallback(Handle owner, Handle hndl, const char[] error, int cl
 			g_iClientData[client][CLIENT_TIME] = SQL_FetchInt(hndl, 7);
 			if(strcmp(userName, g_sClientData[client][CLIENT_NAME]))	//Обновить в базе имя игрока
 			{
-				FormatEx(query, sizeof(query), "UPDATE `clans_table` SET `leader_name` = '%s' WHERE `leader_steam` = '%s';", userName, g_sClientData[client][CLIENT_STEAMID]);
-				g_hClansDB.Query(DB_ClientError, query, 3);
-				FormatEx(query, sizeof(query), "UPDATE `players_table` SET `player_name` = '%s' WHERE `player_steam` = '%s';", userName, g_sClientData[client][CLIENT_STEAMID]);
-				g_hClansDB.Query(DB_ClientError, query, 3);
+				char userNameEscaped[MAX_NAME_LENGTH*2+1];
+				if(!g_hClansDB.Escape(userName, userNameEscaped, sizeof(userNameEscaped)))
+				{
+					LogError("[CLANS] Failed to escape the userName in DB_LoadClientCallback! Can't update the name!");
+				}
+				else
+				{
+					FormatEx(query, sizeof(query), "UPDATE `clans_table` SET `leader_name` = '%s' WHERE `leader_steam` = '%s';", userNameEscaped, g_sClientData[client][CLIENT_STEAMID]);
+					g_hClansDB.Query(DB_ClientError, query, 3);
+					FormatEx(query, sizeof(query), "UPDATE `players_table` SET `player_name` = '%s' WHERE `player_steam` = '%s';", userNameEscaped, g_sClientData[client][CLIENT_STEAMID]);
+					g_hClansDB.Query(DB_ClientError, query, 3);
+				}
 			}
 			FormatEx(query, sizeof(query), "SELECT `clan_name` FROM `clans_table` WHERE `clan_id` = '%d';", g_iClientData[client][CLIENT_CLANID]);
 			g_hClansDB.Query(DB_LoadClanTagCallback, query, client);
@@ -637,6 +678,7 @@ void DB_LoadClientCallback(Handle owner, Handle hndl, const char[] error, int cl
 		{
 			ClanClient = -1;
 		}
+		F_OnClientLoaded(client, ClanClient, ClanClient != -1 ? g_iClientData[client][CLIENT_CLANID] : -1);
 	}
 }
 

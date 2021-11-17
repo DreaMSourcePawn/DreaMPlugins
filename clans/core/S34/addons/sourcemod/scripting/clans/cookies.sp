@@ -33,8 +33,10 @@ bool WantToChangeTag(int client)
 			return true;
 		else if(g_iSetClanTag == 1)	//Ставить, если игрок в клане
 			return IsClientInClan(client);
+		else
+			return false;
 	}
-	return g_iSetClanTag == 2 || (g_iSetClanTag == 1 && IsClientInClan(client)) || StringToInt(buffer) == 1;
+	return g_iSetClanTag == 2 || (g_iSetClanTag == 1 && IsClientInClan(client)) || (g_iSetClanTag == 0 && StringToInt(buffer) == 1);
 }
 
 /**

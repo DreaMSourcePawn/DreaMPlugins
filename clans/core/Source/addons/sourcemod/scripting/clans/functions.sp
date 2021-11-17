@@ -16,8 +16,10 @@ bool IsClanValid(int clanid)
 	SQL_UnlockDatabase(g_hClansDB);
 	if(rSet != null && rSet.FetchRow())
 	{
+		delete rSet;
 		return true;
 	}
+	delete rSet;
 	return false;
 }
 
@@ -41,6 +43,7 @@ void GetClanName(int clanid, char[] buffer, int maxlength)
 		{
 			rSet.FetchString(0, buffer, maxlength);
 		}
+		delete rSet;
 	}
 }
 
@@ -54,19 +57,25 @@ void GetClanName(int clanid, char[] buffer, int maxlength)
  */
 bool SetClanName(int clanid, char[] name)
 {
-	NameToDB(name, strlen(name));
+	char clanNameEscaped[MAX_CLAN_NAME*2+1];
+	if(!g_hClansDB.Escape(name, clanNameEscaped, sizeof(clanNameEscaped)))
+	{
+		LogError("[CLANS] Failed to escape clanName in SetClanName!");
+		return false;
+	}
 	SQL_LockDatabase(g_hClansDB);
 	char query[150],
 		 prevClanName[MAX_CLAN_NAME];
-	FormatEx(query, sizeof(query), "SELECT 1 FROM `clans_table` WHERE `clan_name` = '%s'", name);
+	FormatEx(query, sizeof(query), "SELECT 1 FROM `clans_table` WHERE `clan_name` = '%s'", clanNameEscaped);
 	DBResultSet rSet = SQL_Query(g_hClansDB, query);
 	SQL_UnlockDatabase(g_hClansDB);
 	if(rSet != null && rSet.RowCount > 0)
 	{
+		delete rSet;
 		return false;
 	}
 	GetClanName(clanid, prevClanName, sizeof(prevClanName));
-	FormatEx(query, sizeof(query), "UPDATE `clans_table` SET `clan_name` = '%s' WHERE `clan_id` = '%d'", name, clanid);
+	FormatEx(query, sizeof(query), "UPDATE `clans_table` SET `clan_name` = '%s' WHERE `clan_id` = '%d'", clanNameEscaped, clanid);
 	g_hClansDB.Query(DB_LogError, query, 3);
 	for(int i = 1; i <= MaxClients; i++)
 	{
@@ -76,6 +85,7 @@ bool SetClanName(int clanid, char[] name)
 		}
 	}
 	UpdatePlayersClanTag();
+	delete rSet;
 	return true;
 }
 
@@ -98,6 +108,7 @@ int GetClanCoins(int clanid)
 	{
 		coins = rSet.FetchInt(0);
 	}
+	delete rSet;
 	return coins;
 }
 
@@ -148,6 +159,7 @@ int GetClanKills(int clanid)
 	{
 		kills = rSet.FetchInt(0);
 	}
+	delete rSet;
 	return kills;
 }
 
@@ -183,6 +195,7 @@ int GetClanDeaths(int clanid)
 	{
 		deaths = rSet.FetchInt(0);
 	}
+	delete rSet;
 	return deaths;
 }
 
@@ -218,6 +231,7 @@ int GetClanMembers(int clanid)
 	{
 		members = rSet.RowCount;
 	}
+	delete rSet;
 	return members;
 }
 
@@ -240,6 +254,7 @@ int GetClanMaxMembers(int clanid)
 	{
 		members = rSet.FetchInt(0);
 	}
+	delete rSet;
 	return members;
 }
 
@@ -275,6 +290,7 @@ int GetClanType(int clanid)
 	{
 		type = rSet.FetchInt(0);
 	}
+	delete rSet;
 	return type;
 }
 
@@ -469,6 +485,7 @@ int GetClientIDinDBbySteam(char[] auth)
 	{
 		clientID = rSet.FetchInt(0);
 	}
+	delete rSet;
 	return clientID;
 }
 
@@ -498,6 +515,7 @@ void GetClientNameByID(int clientID, char[] buffer, int maxlength)
 	{
 		rSet.FetchString(0, buffer, maxlength);
 	}
+	delete rSet;
 }
 
 /**
@@ -510,8 +528,10 @@ void GetClientNameByID(int clientID, char[] buffer, int maxlength)
 bool IsClientInClan(int client)
 {
 	if(client < 1 || client > MaxClients || !IsClientInGame(client) || ClanClient < 0)
+	//if(client < 1 || client > MaxClients || !IsClientInGame(client))
 		return false;
 	return true; //Если что то будет не так, то тут было: strcmp(g_sClientData[client][CLIENT_CLANNAME], "") == 0;
+	//return strcmp(g_sClientData[client][CLIENT_CLANNAME], "") != 0;
 }
 
 /**
@@ -535,8 +555,10 @@ bool IsClientInClanByID(int clientID)
 	SQL_UnlockDatabase(g_hClansDB);
 	if(rSet != null && rSet.FetchRow())
 	{
+		delete rSet;
 		return true;
 	}
+	delete rSet;
 	return false;
 }
 
@@ -562,6 +584,7 @@ int GetClientClanByID(int clientID)
 	{
 		clanid = rSet.FetchInt(0);
 	}
+	delete rSet;
 	return clanid;
 }
 
@@ -619,6 +642,7 @@ int GetClientRoleByID(int clientID)
 	{
 		role = rSet.FetchInt(0);
 	}
+	delete rSet;
 	return role;
 }
 
@@ -699,6 +723,7 @@ int GetClientKillsInClanByID(int clientID)
 	{
 		return rSet.FetchInt(0);
 	}
+	delete rSet;
 	return -1;
 }
 
@@ -772,6 +797,7 @@ int GetClientDeathsInClanByID(int clientID)
 	{
 		return rSet.FetchInt(0);
 	}
+	delete rSet;
 	return -1;
 }
 /**
@@ -866,6 +892,7 @@ int GetClientTimeInClanByID(int clientID)
 	{
 		time = rSet.FetchInt(0);
 	}
+	delete rSet;
 	return time;
 }
 
@@ -897,6 +924,7 @@ void GetClanClientNameByID(int clientID, char[] buffer, int maxlength)
 	{
 		rSet.FetchString(0, buffer, maxlength);
 	}
+	delete rSet;
 }
 
 /**
@@ -912,7 +940,6 @@ void CreateClient(int client, int clanid, int role)
 	ClearClientData(client);
 	GetClientName(client, name, sizeof(name));
 	GetClientAuthId(client, AuthId_Steam3, auth, sizeof(auth));
-	NameToDB(name, sizeof(name));
 	DB_CreateClientByData(name, auth, clanid, role);
 	DB_LoadClient(client);
 }
