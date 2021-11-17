@@ -13,6 +13,7 @@ void CreateForwards()
 	g_hClientDeleted = CreateGlobalForward("Clans_OnClientDeleted", ET_Ignore, Param_Cell, Param_Cell);
 	g_hClanSelectedInList = CreateGlobalForward("Clans_OnClanSelectedInList", ET_Ignore, Param_Any, Param_Cell, Param_Cell);
 	g_hOnClanCoinsGive = CreateGlobalForward("Clans_OnClanCoinsGive", ET_Ignore, Param_Cell, Param_CellByRef, Param_Cell);
+	g_hOnClanClientLoaded = CreateGlobalForward("Clans_OnClientLoaded", ET_Ignore, Param_Cell, Param_Cell, Param_Cell);
 }
 
 /**
@@ -108,8 +109,32 @@ void F_OnPlayerStatsOpened(Handle playerStatsMenu, int client)
  */
 void F_OnClansLoaded()
 {
-	Call_StartForward(g_hClansLoaded);
-	Call_Finish();
+	/*Call_StartForward(g_hClansLoaded);
+	Call_Finish();*/
+	CreateTimer(2.0, FT_OnClansLoaded, 0, TIMER_FLAG_NO_MAPCHANGE);
+}
+
+Action FT_OnClansLoaded(Handle timer)
+{
+	Handle plugin;
+	Handle thisplugin = GetMyHandle();
+	Handle plugIter = GetPluginIterator();
+	while (MorePlugins(plugIter))
+	{
+		plugin = ReadPlugin(plugIter);
+		if (plugin != thisplugin && GetPluginStatus(plugin) == Plugin_Running)
+		{
+			Function func = GetFunctionByName(plugin, "Clans_OnClansLoaded");
+			if (func != INVALID_FUNCTION)
+			{
+				Call_StartFunction(plugin, func);
+				Call_Finish();
+			}
+		}
+	}
+	delete plugIter;
+	delete plugin;
+	delete thisplugin;
 }
 
 /**
@@ -195,5 +220,21 @@ void F_OnClanCoinsGive(int clanid, int& coins, bool givenByAdmin)
 	Call_PushCell(clanid);
 	Call_PushCellRef(coins);
 	Call_PushCell(givenByAdmin);
+	Call_Finish();
+}
+
+/**
+ * Starts Clans_OnClientLoaded forward
+ *
+ * @param int iClient - client's index
+ * @param int iClientID - client's id in database
+ * @param int iClanid - client's clan id
+ */
+void F_OnClientLoaded(int iClient, int iClientID, int iClanid)
+{
+	Call_StartForward(g_hOnClanClientLoaded);
+	Call_PushCell(iClient);
+	Call_PushCell(iClientID);
+	Call_PushCell(iClanid);
 	Call_Finish();
 }

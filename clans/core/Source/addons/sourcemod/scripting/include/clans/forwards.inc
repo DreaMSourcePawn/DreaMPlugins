@@ -103,6 +103,16 @@ forward void Clans_OnClanAdded(int clanid, int client);
 forward void Clans_OnClanDeleted(int clanid);
 
 /**
+ * Calls when client is loaded
+ *
+ * @param 		int iClient - client's index
+ * @param 		int iClientID - client's id in database
+ * @param 		int iClanid - client's clan id
+ * @noreturn
+*/
+forward void Clans_OnClientLoaded(int iClient, int iClientID, int iClanid);
+
+/**
  * Calls when new clan client has been added
  *
  * @param 		int clientID - client's ID in clan database

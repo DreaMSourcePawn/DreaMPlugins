@@ -10,6 +10,14 @@
 native void Clans_CreateClientWithData(const char[] name, const char[] auth, int clanid, int role);
 
 /**
+ * Check if player uses clan tag
+ *
+ * @param		client - client's index
+ * @return		true - player uses ingame clan tag
+ */
+native bool Clans_UseClanTag(int client);
+
+/**
  * Get client's id in database
  *
  * @param		client - client's index
@@ -167,14 +175,4 @@ native void Clans_SetCreatePerm(int client, bool status);
  * @param		clientID - client's index in database
  * @return		client's time in clan in seconds, -1 if client isn't in any clan
  */
-native bool Clans_GetClientTimeInClan(int clientID);
-
-/**
- * Get all online clients in some clan
- *
- * @param int clanid - clan, whose members are looking for
- * @param ArrayList memberList - list of online players in some clan
- *
- * @noreturn
- */
-native void Clans_GetClanMembersOnline(int clanid, ArrayList memberList);
+native int Clans_GetClientTimeInClan(int clientID);
