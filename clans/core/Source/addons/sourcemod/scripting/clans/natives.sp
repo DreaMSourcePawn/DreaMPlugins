@@ -22,6 +22,8 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 	CreateNative("Clans_GetCreatePerm", Native_GetCreatePerm);
 	CreateNative("Clans_SetCreatePerm", Native_SetCreatePerm);
 	CreateNative("Clans_GetClientTimeInClan", Native_GetClientTimeInClan);
+	CreateNative("Clans_GetClientTimeToCreateClan", Native_GetClientTimeToCreateClan);
+	CreateNative("Clans_GetClientClanName", Native_GetClientClanName);
 	CreateNative("Clans_GetClanMembersOnline", Native_GetClanMembersOnline);
 	//Clans
 	CreateNative("Clans_IsClanValid", Native_IsClanValid);
@@ -243,6 +245,23 @@ public int Native_GetClanMembersOnline(Handle plugin, int numParams)
 		if(IsClientInGame(i) && !strcmp(g_sClientData[i][CLIENT_CLANNAME], clanName))
 			memberList.Push(i);
 	}
+	return 0;
+}
+
+public int Native_GetClientTimeToCreateClan(Handle plugin, int iParams)
+{
+	int iClient = GetNativeCell(1);
+	if(iClient < 1 || iClient > MaxClients || !IsClientInGame(iClient))
+		return -1;
+	int iTimeOfCD = GetTime() - GetLastClanCreationTime(iClient);
+	return g_iClanCreationCD-iTimeOfCD/60;
+}
+
+public int Native_GetClientClanName(Handle plugin, int iParams)
+{
+	int iClient = GetNativeCell(1);
+	int iBufSize = GetNativeCell(3);
+	SetNativeString(2, g_sClientData[iClient][CLIENT_CLANNAME], iBufSize);
 	return 0;
 }
   //=============================== CLANS ===============================//

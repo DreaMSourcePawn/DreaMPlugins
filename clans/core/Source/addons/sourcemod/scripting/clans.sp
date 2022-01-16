@@ -11,8 +11,8 @@
 
 #define ClanClient playerID[client]	//Айди игрока в базе данных
 #define BUFF_SIZE 600
-#define LOG_SIZE 100
-#define PLUGIN_VERSION "1.833"
+#define LOG_SIZE 512
+#define PLUGIN_VERSION "1.852"
 //================================================
 //Flag for CSS v34
 bool g_bCSS34 = false;
@@ -689,15 +689,12 @@ Action SayHook(int client, const char[] command, int args)
 			g_hClansDB.Escape(clanName, clanNameEscaped, sizeof(clanNameEscaped));
 			DataPack dp = CreateDataPack();
 			GetClanName(clanid, clanPrevName, sizeof(clanPrevName));
-			/*NameToDB(clanPrevName, sizeof(clanPrevName));
-			NameToDB(clanName, sizeof(clanName));*/
 			dp.WriteCell(client);
 			dp.WriteCell(clanid);
 			dp.WriteString(clanPrevName);
 			dp.WriteString(clanName);
 			dp.WriteCell(takeCoins);
 			dp.Reset();
-			PrintToChatAll("%s | %s | %s", clanName, buff, clanNameEscaped);
 			FormatEx(query, sizeof(query), "SELECT 1 FROM `clans_table` WHERE `clan_name` = '%s'", clanNameEscaped);
 			g_hClansDB.Query(DB_RenameClanCallback, query, dp);
 			renameClan[client] = false;
