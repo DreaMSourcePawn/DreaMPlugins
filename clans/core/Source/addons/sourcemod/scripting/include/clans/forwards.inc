@@ -115,20 +115,22 @@ forward void Clans_OnClientLoaded(int iClient, int iClientID, int iClanid);
 /**
  * Calls when new clan client has been added
  *
- * @param 		int clientID - client's ID in clan database
- * @param 		int clanid - client clan's index
+ * @param		int iClient - client's index (-1 if player is offline)
+ * @param 		int iClientID - client's ID in clan database
+ * @param 		int iClanid - client clan's index
  * @noreturn
 */
-forward void Clans_OnClientAdded(int clientID, int clanid);
+forward void Clans_OnClientAdded(int iClient, int iClientID, int iClanid);
 
 /**
  * Calls when clan client has been deleted
  *
- * @param 		int clientID - client's ID in clan database
- * @param 		int clanid - clan's index, where clan client was
+ * @param		int iClient - client's index (-1 if player is offline)
+ * @param 		int iClientID - client's ID in clan database
+ * @param 		int iClanid - clan's index, where clan client was
  * @noreturn
 */
-forward void Clans_OnClientDeleted(int clientID, int clanid);
+forward void Clans_OnClientDeleted(int iClient, int iClientID, int iClanid);
 
 /**
  * Calls when clan is going to get coins

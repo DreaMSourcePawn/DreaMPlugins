@@ -708,7 +708,7 @@ int Clan_AdminClansSelectMenu(Handle adminClansMenu, MenuAction action, int clie
 		{
 			bool available = false;
 			Handle newClanLeaderSelectMenu = CreateMenu(Clan_LeaderOfNewClanSelectMenu);
-			char print_buff[BUFF_SIZE], name[MAX_NAME_LENGTH], userid[15];
+			char print_buff[BUFF_SIZE], name[MAX_NAME_LENGTH+1], userid[15];
 			FormatEx(print_buff, sizeof(print_buff), "%T", "m_OnlinePlayers", client);
 			SetMenuTitle(newClanLeaderSelectMenu, print_buff);
 			for(int target = 1; target <= MaxClients; target++)
@@ -1448,7 +1448,7 @@ bool ThrowInviteList(int client)
 		return false;
 	Handle inviteSelectMenu = CreateMenu(Clan_InvitePlayerSelectMenu);
 	char print_buff[80], 
-		 name[MAX_NAME_LENGTH], 
+		 name[MAX_NAME_LENGTH+1], 
 		 userid[15];
 	bool allPlayersFree = true;
 		 
@@ -1909,8 +1909,8 @@ void DBM_ClanStats(Handle owner, Handle hndl, const char[] error, int client)
 	}
 	else if(SQL_FetchRow(hndl))
 	{
-		char clanName[MAX_CLAN_NAME],
-			 leaderName[MAX_NAME_LENGTH],
+		char clanName[MAX_CLAN_NAME+1],
+			 leaderName[MAX_NAME_LENGTH+1],
 			 dateCreation[11];
 		SQL_FetchString(hndl, 0, clanName, sizeof(clanName));
 		int clanid = SQL_FetchInt(hndl, 1);

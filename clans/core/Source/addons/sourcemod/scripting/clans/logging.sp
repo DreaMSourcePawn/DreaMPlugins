@@ -241,32 +241,7 @@ void DB_LogCallback(Handle owner, Handle hndl, const char[] error, DataPack dp)
 		}
 		
 		int time = GetTime();
-		char c_time[50],
-			 clientNameEscaped[MAX_NAME_LENGTH*2+1],
-			 clientClanNameEscaped[MAX_NAME_LENGTH*2+1],
-			 targetNameEscaped[MAX_NAME_LENGTH*2+1],
-			 targetClanNameEscaped[MAX_CLAN_NAME*2+1];
-		if(!g_hLogDB.Escape(clientName, clientNameEscaped, sizeof(clientNameEscaped)))
-		{
-			LogError("[CLANS] Failed to escape the clientName in LogCallback!");
-			return;
-		}
-		if(!g_hLogDB.Escape(clientClanName, clientClanNameEscaped, sizeof(clientClanNameEscaped)))
-		{
-			LogError("[CLANS] Failed to escape the clientClanName in LogCallback!");
-			return;
-		}
-		if(!g_hLogDB.Escape(targetName, targetNameEscaped, sizeof(targetNameEscaped)))
-		{
-			LogError("[CLANS] Failed to escape the targetName in LogCallback!");
-			return;
-		}
-		if(!g_hLogDB.Escape(targetClanName, targetClanNameEscaped, sizeof(targetClanNameEscaped)))
-		{
-			LogError("[CLANS] Failed to escape the targetClanName in LogCallback!");
-			return;
-		}
-		
+		char c_time[50];
 		if(g_iLogs > 1)	//ToFile
 		{
 			char fileName[150],
@@ -294,6 +269,30 @@ void DB_LogCallback(Handle owner, Handle hndl, const char[] error, DataPack dp)
 		}
 		else	//To sqlite
 		{
+			char clientNameEscaped[MAX_NAME_LENGTH*2+1],
+			 	 clientClanNameEscaped[MAX_NAME_LENGTH*2+1],
+			 	 targetNameEscaped[MAX_NAME_LENGTH*2+1],
+			 	 targetClanNameEscaped[MAX_CLAN_NAME*2+1];
+			if(!g_hLogDB.Escape(clientName, clientNameEscaped, sizeof(clientNameEscaped)))
+			{
+				LogError("[CLANS] Failed to escape the clientName in LogCallback!");
+				return;
+			}
+			if(!g_hLogDB.Escape(clientClanName, clientClanNameEscaped, sizeof(clientClanNameEscaped)))
+			{
+				LogError("[CLANS] Failed to escape the clientClanName in LogCallback!");
+				return;
+			}
+			if(!g_hLogDB.Escape(targetName, targetNameEscaped, sizeof(targetNameEscaped)))
+			{
+				LogError("[CLANS] Failed to escape the targetName in LogCallback!");
+				return;
+			}
+			if(!g_hLogDB.Escape(targetClanName, targetClanNameEscaped, sizeof(targetClanNameEscaped)))
+			{
+				LogError("[CLANS] Failed to escape the targetClanName in LogCallback!");
+				return;
+			}
 			FormatTime(c_time, sizeof(c_time), "%c", time);
 			FormatEx(query, sizeof(query), "INSERT INTO `logs` VALUES ('%d', '%s', '%d', '%s', '%s', '%d', '%s', '%d', '%s', '%d', '%d', '%s')", clientID, clientNameEscaped, clientClanid, clientClanNameEscaped, action, targetID, targetNameEscaped, targetClanid, targetClanNameEscaped, type, time, c_time);
 			SQL_TQuery(g_hLogDB, DB_LogError, query, 0);

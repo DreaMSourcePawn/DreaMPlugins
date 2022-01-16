@@ -563,7 +563,7 @@ void DB_CreateClient(int client)
 	}
 	
 	delete rSet;
-	F_OnClientAdded(ClanClient, g_iClientData[client][CLIENT_CLANID]);
+	F_OnClientAdded(client, ClanClient, g_iClientData[client][CLIENT_CLANID]);
 }
 
 /**
@@ -574,7 +574,7 @@ void DB_CreateClient(int client)
  * @param int clanid - client clan's id
  * @param int role - client's role
  */
-void DB_CreateClientByData(char[] name, const char[] auth, int clanid, int role)
+void DB_CreateClientByData(char[] name, const char[] auth, int clanid, int role, int iClient = -1)
 {
 	SQL_LockDatabase(g_hClansDB);
 	char query[800];
@@ -616,7 +616,7 @@ void DB_CreateClientByData(char[] name, const char[] auth, int clanid, int role)
 		g_hClansDB.Query(DB_ClansError, query, 7);
 	}
 	delete rSet;
-	F_OnClientAdded(idOfNewClient, clanid);
+	F_OnClientAdded(iClient, idOfNewClient, clanid);
 }
 
 /* 

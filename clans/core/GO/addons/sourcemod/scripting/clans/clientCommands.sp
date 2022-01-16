@@ -241,13 +241,13 @@ public Action Command_ClanChat(int client, int args)
 				CPrintToChat(i, print_buff);
 			else
 				CPrintToChat(i, "{green}[%s] %s: {lightgreen}%s", clanName, userName, buff);
-			if(CheckForLog(LOG_CLANCHAT))
-			{
-				char log_buff[LOG_SIZE];
-				FormatEx(log_buff, sizeof(log_buff), "%T", "L_ClanChat", LANG_SERVER, buff);
-				DB_LogAction(ClanClient, true, clanid, log_buff, -1, true, -1, LOG_CLANCHAT);
-			}
 		}
+	}
+	if(CheckForLog(LOG_CLANCHAT))
+	{
+		char log_buff[LOG_SIZE];
+		FormatEx(log_buff, sizeof(log_buff), "%T", "L_ClanChat", LANG_SERVER, buff);
+		DB_LogAction(ClanClient, true, clanid, log_buff, -1, true, -1, LOG_CLANCHAT);
 	}
 	return Plugin_Handled;
 }

@@ -176,3 +176,23 @@ native void Clans_SetCreatePerm(int client, bool status);
  * @return		client's time in clan in seconds, -1 if client isn't in any clan
  */
 native int Clans_GetClientTimeInClan(int clientID);
+
+/**
+ * Get client clan's name
+ *
+ * @param		int iClient - client's index
+ * @param		char[] sBuffer - buffer to store the name
+ * @param		int iBufSize - buffer size
+ *
+ * @noreturn
+ */
+native void Clans_GetClientClanName(int iClient, char[] sBuffer, int iBufSize);
+
+/**
+ * Get client's remaining time to create a new clan
+ *
+ * @param		int iClient - client's index
+ *
+ * @return 	remaining time in minutes
+ */
+native int Clans_GetClientTimeToCreateClan(int iClient);

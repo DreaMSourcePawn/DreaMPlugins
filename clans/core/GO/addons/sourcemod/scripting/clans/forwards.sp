@@ -10,7 +10,7 @@ void CreateForwards()
 	g_hClanAdded = CreateGlobalForward("Clans_OnClanAdded", ET_Ignore, Param_Cell, Param_Cell);
 	g_hClanDeleted = CreateGlobalForward("Clans_OnClanDeleted", ET_Ignore, Param_Cell);
 	g_hClientAdded = CreateGlobalForward("Clans_OnClientAdded", ET_Ignore, Param_Cell, Param_Cell, Param_Cell);
-	g_hClientDeleted = CreateGlobalForward("Clans_OnClientDeleted", ET_Ignore, Param_Cell, Param_Cell);
+	g_hClientDeleted = CreateGlobalForward("Clans_OnClientDeleted", ET_Ignore, Param_Cell, Param_Cell, Param_Cell);
 	g_hClanSelectedInList = CreateGlobalForward("Clans_OnClanSelectedInList", ET_Ignore, Param_Any, Param_Cell, Param_Cell);
 	g_hOnClanCoinsGive = CreateGlobalForward("Clans_OnClanCoinsGive", ET_Ignore, Param_Cell, Param_CellByRef, Param_Cell);
 	g_hOnClanClientLoaded = CreateGlobalForward("Clans_OnClientLoaded", ET_Ignore, Param_Cell, Param_Cell, Param_Cell);
@@ -166,28 +166,33 @@ void F_OnClanDeleted(int clanid)
 /**
  * Starts Clans_OnClientAdded forward
  *
- * @param int clientID - player's id in the database
- * @param int clanid - clan's id
+ * @param		int iClient - client's index (-1 if player is offline)
+ * @param 		int iClientID - client's ID in clan database
+ * @param 		int iClanid - client clan's index
+ * @noreturn
  */
-void F_OnClientAdded(int clientID, int clanid)
+void F_OnClientAdded(int iClient, int iClientID, int iClanid)
 {
 	Call_StartForward(g_hClientAdded);
-	Call_PushCell(clientID);
-	Call_PushCell(clanid);
+	Call_PushCell(iClient);
+	Call_PushCell(iClientID);
+	Call_PushCell(iClanid);
 	Call_Finish();
 }
 
 /**
  * Starts Clans_OnClientDeleted forward
  *
- * @param int clientID - player's id in the database
- * @param int clanid - clan's id
+ * @param		int iClient - client's index (-1 if player is offline)
+ * @param 		int iClientID - client's ID in clan database
+ * @param 		int iClanid - client clan's index
  */
-void F_OnClientDeleted(int clientID, int clanid)
+void F_OnClientDeleted(int iClient, int iClientID, int iClanid)
 {
 	Call_StartForward(g_hClientDeleted);
-	Call_PushCell(clientID);
-	Call_PushCell(clanid);
+	Call_PushCell(iClient);
+	Call_PushCell(iClientID);
+	Call_PushCell(iClanid);
 	Call_Finish();
 }
 

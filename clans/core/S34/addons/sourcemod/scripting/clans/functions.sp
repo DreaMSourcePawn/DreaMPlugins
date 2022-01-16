@@ -84,7 +84,8 @@ bool SetClanName(int clanid, char[] name)
 			FormatEx(g_sClientData[i][CLIENT_CLANNAME], MAX_NAME_LENGTH, "%s", name);
 		}
 	}
-	UpdatePlayersClanTag();
+	if(!g_bCSS34)
+		UpdatePlayersClanTag();
 	delete rSet;
 	return true;
 }
@@ -356,7 +357,7 @@ void DeleteClan(int clanid)
 		if(IsClientInGame(i) && !strcmp(g_sClientData[i][CLIENT_CLANNAME], clanName))
 		{
 			ClearClientData(i);
-			F_OnClientDeleted(playerID[i], clanid);
+			F_OnClientDeleted(i, playerID[i], clanid);
 		}
 	}
 	
@@ -940,7 +941,7 @@ void CreateClient(int client, int clanid, int role)
 	ClearClientData(client);
 	GetClientName(client, name, sizeof(name));
 	GetClientAuthId(client, AuthId_Steam3, auth, sizeof(auth));
-	DB_CreateClientByData(name, auth, clanid, role);
+	DB_CreateClientByData(name, auth, clanid, role, client);
 	DB_LoadClient(client);
 }
 
@@ -973,15 +974,17 @@ bool DeleteClientByID(int clientID)
 	}
 	else	//Если в клане все же есть еще люди
 	{
+		int iClient = -1;
 		for(int i = 1; i <= MaxClients; i++)
 		{
 			if(playerID[i] == clientID)
 			{
 				ClearClientData(i);
+				iClient = i;
 			}
 		}
 		DB_PreDeleteClient(clientID);
-		F_OnClientDeleted(clientID, clanid);
+		F_OnClientDeleted(iClient, clientID, clanid);
 	}
 	if(!g_bCSS34)
 		UpdatePlayersClanTag();
