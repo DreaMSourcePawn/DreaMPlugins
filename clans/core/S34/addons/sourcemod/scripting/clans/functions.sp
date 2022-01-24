@@ -333,11 +333,20 @@ void CreateClan(int leader, char[] clanName, int createdBy = -1)
  *
  * @return true - success, false - failed
  */
-bool ResetClan(int clanid)
+bool ResetClan(int clanid, bool bResetPlayers = false)
 {
-	if(!IsClanValid(clanid))
-		return false;
-	DB_ResetClan(clanid);
+	if(bResetPlayers)
+	{
+		for(int i = 1; i <= MaxClients; ++i)	//vv1.86
+		{
+			if(IsClientInGame(i) && g_iClientData[i][CLIENT_CLANID] == clanid)
+			{
+				g_iClientData[i][CLIENT_KILLS] = g_iClientData[i][CLIENT_DEATHS] = 0;
+				g_iClientDiffData[i][CD_DIFF_KILLS] = g_iClientDiffData[i][CD_DIFF_DEATHS] = 0;
+			}
+		}
+	}
+	DB_ResetClan(clanid, bResetPlayers);
 	return true;
 }
 
@@ -354,7 +363,8 @@ void DeleteClan(int clanid)
 	
 	for(int i = 1; i <= MaxClients; i++)
 	{
-		if(IsClientInGame(i) && !strcmp(g_sClientData[i][CLIENT_CLANNAME], clanName))
+		//if(IsClientInGame(i) && !strcmp(g_sClientData[i][CLIENT_CLANNAME], clanName))
+		if(IsClientInGame(i) && g_iClientData[i][CLIENT_CLANID] == clanid)
 		{
 			ClearClientData(i);
 			F_OnClientDeleted(i, playerID[i], clanid);
@@ -375,6 +385,7 @@ void ClearClientData(int client)
 	if(client && client <= MaxClients)
 	{
 		ClanClient = -1;
+		g_iClientData[client][CLIENT_CLANID] = -1;
 		g_sClientData[client][CLIENT_CLANNAME] = "";
 		if(!g_bCSS34 && IsClientInGame(client) && WantToChangeTag(client))
 			CS_SetClientClanTag(client, "");
@@ -471,7 +482,7 @@ int GetClientIDinDBbySteam(char[] auth)
 	{
 		if(IsClientInGame(i))
 		{
-			GetClientAuthId(i, AuthId_Steam3, playerAuth, sizeof(playerAuth));
+			GetClientAuthId(i, AuthId_Steam2, playerAuth, sizeof(playerAuth));
 			if(!strcmp(playerAuth, auth))
 				return playerID[i];
 		}
@@ -544,6 +555,8 @@ bool IsClientInClan(int client)
  */
 bool IsClientInClanByID(int clientID)
 {
+	if(clientID < 0)
+		return false;
 	for(int i = 1; i <= MaxClients; i++)
 	{
 		if(playerID[i] == clientID)
@@ -568,13 +581,22 @@ bool IsClientInClanByID(int clientID)
  * Get client's clan id in database by client's id
  *
  * @param int clientID - player's id in database
+ * @param bool bFromDB = false - get data from database (v1.86). Returns the cached value if player is online
  *
  * @return client's clan id
  */
-int GetClientClanByID(int clientID)
+int GetClientClanByID(int clientID, bool bFromDB = false)
 {
 	if(clientID < 0)
 		return -1;
+	if(!bFromDB)
+	{
+		for(int i = 1; i <= MaxClients; ++i)
+		{
+			if(playerID[i] == clientID)
+				return g_iClientData[i][CLIENT_CLANID];
+		}
+	}
 	SQL_LockDatabase(g_hClansDB);
 	int clanid = -1;
 	char query[150];
@@ -621,18 +643,22 @@ void SetClanLeaderByID(int leaderid, int clanid)
  * Get player's role by his/her id
  *
  * @param int clientID - player's id in database
+ * @param bool bFromDB = false - get data from database (v1.86). Returns the cached value if player is online
  *
  * @return player's role
 */
-int GetClientRoleByID(int clientID)
+int GetClientRoleByID(int clientID, bool bFromDB = false)
 {
 	if(clientID < 0)
 		return -1;
-	/*for(int i = 1; i <= MaxClients; i++)
+	if(!bFromDB)
 	{
-		if(playerID[i] == clientID)
-			return g_iClientData[i][CLIENT_ROLE];
-	}*/
+		for(int i = 1; i <= MaxClients; i++)
+		{
+			if(playerID[i] == clientID)
+				return g_iClientData[i][CLIENT_ROLE];
+		}
+	}
 	SQL_LockDatabase(g_hClansDB);
 	int role = -1;
 	char query[150];
@@ -651,36 +677,39 @@ int GetClientRoleByID(int clientID)
  * Check if player is clan leader by id
  *
  * @param int clientID - player's id in database
+ * @param bool bFromDB = false - get data from database (v1.86). Returns the cached value if player is online
  *
  * @return true - player is clan leader, otherwise - false
  */
-bool IsClientClanLeaderByID(int clientID)
+bool IsClientClanLeaderByID(int clientID, bool bFromDB = false)
 {
-	return GetClientRoleByID(clientID) == CLIENT_LEADER;
+	return GetClientRoleByID(clientID, bFromDB) == CLIENT_LEADER;
 }
 
 /**
  * Check if player is clan co-leader by id
  *
  * @param int clientID - player's id
+ * @param bool bFromDB = false - get data from database (v1.86). Returns the cached value if player is online
  *
  * @return true - player is clan co-leader, otherwise - false
  */
-bool IsClientClanCoLeaderByID(int clientID)
+bool IsClientClanCoLeaderByID(int clientID, bool bFromDB = false)
 {
-	return GetClientRoleByID(clientID) == CLIENT_COLEADER;
+	return GetClientRoleByID(clientID, bFromDB) == CLIENT_COLEADER;
 }
 
 /**
  * Check if player is clan elder by id
  *
  * @param int clientID - player's id in database
+ * @param bool bFromDB = false - get data from database (v1.86). Returns the cached value if player is online
  *
  * @return true - player is clan elder, otherwise - false
  */
-bool IsClientClanElderByID(int clientID)
+bool IsClientClanElderByID(int clientID, bool bFromDB = false)
 {
-	return GetClientRoleByID(clientID) == CLIENT_ELDER;
+	return GetClientRoleByID(clientID, bFromDB) == CLIENT_ELDER;
 }
 
 /**
@@ -708,13 +737,22 @@ bool SetClientRoleByID(int clientID, int newRole)
  * Get client's kills in current clan by client's id
  *
  * @param int clientID - client's id in database
+ * @param		bool bFromDB = false - get data from database (v1.86). Returns the cached value if player is online
  *
  * @return number of client's kills
  */
-int GetClientKillsInClanByID(int clientID)
+int GetClientKillsInClanByID(int clientID, bool bFromDB = false)
 {
 	if(clientID < 0)
 		return -1;
+	if(!bFromDB)
+	{
+		for(int i = 1; i <= MaxClients; ++i)
+		{
+			if(playerID[i] == clientID)
+				return g_iClientData[i][CLIENT_KILLS]+g_iClientDiffData[i][CD_DIFF_KILLS] >= 0 ? g_iClientData[i][CLIENT_KILLS]+g_iClientDiffData[i][CD_DIFF_KILLS] : 0;
+		}
+	}
 	SQL_LockDatabase(g_hClansDB);
 	char query[150];
 	FormatEx(query, sizeof(query), "SELECT `player_kills` FROM `players_table` WHERE `player_id` = '%d'", clientID);
@@ -763,6 +801,14 @@ bool ChangeClientKillsInClanByID(int clientID, int amountToAdd)
 {
 	if(clientID < 0)
 		return false;
+	for(int i = 1; i <= MaxClients; ++i)
+	{
+		if(playerID[i] == clientID)
+		{
+			g_iClientDiffData[i][CD_DIFF_KILLS] += amountToAdd;
+			return true;
+		}
+	}
 	char query[200];
 	/*FormatEx(query, sizeof(query), "UPDATE `players_table` SET `player_kills` = `player_kills`+'%d' WHERE `player_id` = '%d'", amountToAdd, clientID);
 	g_hClansDB.Query(DB_ClientError, query, 1);
@@ -782,13 +828,22 @@ bool ChangeClientKillsInClanByID(int clientID, int amountToAdd)
  * Get client's deaths in current clan by client's id
  *
  * @param int clientID - client's id in database
+ * @param		bool bFromDB = false - get data from database (v1.86). Returns the cached value if player is online
  *
  * @return number of client's deaths
  */
-int GetClientDeathsInClanByID(int clientID)
+int GetClientDeathsInClanByID(int clientID, bool bFromDB = false)
 {
 	if(clientID < 0)
 		return -1;
+	if(!bFromDB)
+	{
+		for(int i = 1; i <= MaxClients; ++i)
+		{
+			if(playerID[i] == clientID)
+				return g_iClientData[i][CLIENT_DEATHS]+g_iClientDiffData[i][CD_DIFF_DEATHS] >= 0 ? g_iClientData[i][CLIENT_DEATHS]+g_iClientDiffData[i][CD_DIFF_DEATHS] : 0;
+		}
+	}
 	SQL_LockDatabase(g_hClansDB);
 	char query[150];
 	FormatEx(query, sizeof(query), "SELECT `player_deaths` FROM `players_table` WHERE `player_id` = '%d'", clientID);
@@ -836,6 +891,14 @@ bool ChangeClientDeathsInClanByID(int clientID, int amountToAdd)
 {
 	if(clientID < 0)
 		return false;
+	for(int i = 1; i <= MaxClients; ++i)
+	{
+		if(playerID[i] == clientID)
+		{
+			g_iClientDiffData[i][CD_DIFF_DEATHS] += amountToAdd;
+			return true;
+		}
+	}
 	char query[400];
 	/*FormatEx(query, sizeof(query), "UPDATE `players_table` SET `player_deaths` = `player_deaths`+'%d' WHERE `player_id` = '%d'", amountToAdd, clientID);
 	g_hClansDB.Query(DB_ClientError, query, 1);
@@ -851,25 +914,32 @@ bool ChangeClientDeathsInClanByID(int clientID, int amountToAdd)
 	return true;
 }
 
-void KillFunc(int attackerID, int victimID, int amount)
+void KillFunc(int attacker, int victim, int amount)
 {
-	Transaction txn = SQL_CreateTransaction();
+	/*
+	//Transaction txn = SQL_CreateTransaction();
 	char query[400];
 	if(victimID != -1)
 	{
 		FormatEx(query, sizeof(query), "UPDATE `players_table` SET `player_deaths` = `player_deaths`+'%d' WHERE `player_id` = '%d'", amount, victimID);
-		txn.AddQuery(query);
+		//txn.AddQuery(query);
+		g_hClansDB.Query(DB_ClientError, query, 2);
 		FormatEx(query, sizeof(query), "UPDATE `clans_table` SET `clan_deaths` = `clan_deaths` + '%d' WHERE `clan_id` = (SELECT `player_clanid` FROM `players_table` WHERE `player_id` = '%d')", amount, victimID);
-		txn.AddQuery(query);
+		g_hClansDB.Query(DB_ClansError, query, 2);
+		//txn.AddQuery(query);
 	}
 	if(attackerID != -1)
 	{
 		FormatEx(query, sizeof(query), "UPDATE `players_table` SET `player_kills` = `player_kills`+'%d' WHERE `player_id` = '%d'", amount, attackerID);
-		txn.AddQuery(query);
+		//txn.AddQuery(query);
+		g_hClansDB.Query(DB_ClientError, query, 1);
 		FormatEx(query, sizeof(query), "UPDATE `clans_table` SET `clan_kills` = `clan_kills` + '%d' WHERE `clan_id` = (SELECT `player_clanid` FROM `players_table` WHERE `player_id` = '%d')", amount, attackerID);
-		txn.AddQuery(query);
+		g_hClansDB.Query(DB_ClansError, query, 1);
+		//txn.AddQuery(query);
 	}
-	SQL_ExecuteTransaction(g_hClansDB, txn);
+	//SQL_ExecuteTransaction(g_hClansDB, txn);*/
+	g_iClientDiffData[attacker][CD_DIFF_KILLS] += amount;
+	g_iClientDiffData[victim][CD_DIFF_DEATHS] += amount;
 }
 
 /**
@@ -883,6 +953,13 @@ int GetClientTimeInClanByID(int clientID)
 {
 	if(clientID < 0)
 		return -1;
+	for(int i = 1; i <= MaxClients; ++i)	//vv1.86
+	{
+		if(IsClientInGame(i) && playerID[i] == clientID)
+		{
+			return g_iClientData[i][CLIENT_TIME];
+		}
+	}
 	SQL_LockDatabase(g_hClansDB);
 	int time = -1;
 	char query[150];
@@ -940,7 +1017,7 @@ void CreateClient(int client, int clanid, int role)
 	char name[MAX_NAME_LENGTH+1], auth[33];
 	ClearClientData(client);
 	GetClientName(client, name, sizeof(name));
-	GetClientAuthId(client, AuthId_Steam3, auth, sizeof(auth));
+	GetClientAuthId(client, AuthId_Steam2, auth, sizeof(auth));
 	DB_CreateClientByData(name, auth, clanid, role, client);
 	DB_LoadClient(client);
 }
@@ -952,6 +1029,18 @@ void CreateClient(int client, int clanid, int role)
  */
 void ResetClient(int clientID)
 {
+	if(clientID >= 0)
+	{
+		for(int i = 1; i <= MaxClients; ++i)	//vv1.86
+		{
+			if(IsClientInGame(i) && playerID[i] == clientID)
+			{
+				g_iClientDiffData[i][CD_DIFF_KILLS] = -g_iClientData[i][CLIENT_KILLS];
+				g_iClientDiffData[i][CD_DIFF_DEATHS] = -g_iClientData[i][CLIENT_DEATHS];
+				return;
+			}
+		}
+	}
 	DB_ResetClient(clientID);
 }
 
@@ -983,6 +1072,7 @@ bool DeleteClientByID(int clientID)
 				iClient = i;
 			}
 		}
+		DB_SavePlayer(iClient);
 		DB_PreDeleteClient(clientID);
 		F_OnClientDeleted(iClient, clientID, clanid);
 	}
@@ -1000,9 +1090,9 @@ bool DeleteClientByID(int clientID)
  *
  * @return true - success, false - failed
  */
-bool SetOnlineClientClan(int client, int clanid, int role)	//Переписать
+bool SetOnlineClientClan(int client, int clanid, int role)
 {
-	if(client < 1 || client > MaxClients || !IsClientInGame(client) || !IsClanValid(clanid))
+	if(client < 1 || client > MaxClients || !IsClientInGame(client))
 		return false;
 	
 	if(IsClientInClan(client))

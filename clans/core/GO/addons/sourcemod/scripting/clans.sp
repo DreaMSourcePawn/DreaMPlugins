@@ -12,7 +12,7 @@
 #define ClanClient playerID[client]	//Айди игрока в базе данных
 #define BUFF_SIZE 600
 #define LOG_SIZE 512
-#define PLUGIN_VERSION "1.852"
+#define PLUGIN_VERSION "1.86"
 //================================================
 //Flag for CSS v34
 bool g_bCSS34 = false;
@@ -27,8 +27,17 @@ bool g_bClansLoaded = false;
  *	4 - time of joining
  *
  * Используется для создания игрока. Но роль используется и позже, чтобы снизить нагрузку на базу во время выставления клан тега
+ * Кэшируется убийства/смерти, чтобы снизить кол-во запросов в базу. Роль все еще берется с базы v1.86
  */
 int g_iClientData[MAXPLAYERS+1][5];
+
+/** Client's data difference since loading
+ * 0 - Kills
+ * 1 - Deaths
+ */
+#define CD_DIFF_KILLS 0
+#define CD_DIFF_DEATHS 1
+int g_iClientDiffData[MAXPLAYERS+1][2];
 
 /** Client data (String)
  *	0 - Name
@@ -202,11 +211,6 @@ public void OnPluginStart()
 	RegAdminCommands();
 	RegCVars();
 	RegCookie();
-	
-	for(int i = 0; i < MAXPLAYERS+1; i++)
-	{
-		ClearClientData(i);
-	}
 
 	if(g_iLogs)
 		PrepareDatabaseToLog();
@@ -223,7 +227,24 @@ public void OnPluginStart()
 
 	ConnectToDatabase();
 	
+	for(int i = 1; i <= MaxClients; i++)
+	{
+		ClearPlayerMenuBuffer(i);	// v1.86
+		ClearClientData(i);
+		if(IsClientInGame(i))
+			OnClientPostAdminCheck(i);
+	}
+
 	ClansLoaded();
+}
+
+public void OnPluginEnd()
+{
+	for(int i = 1; i <= MaxClients; ++i)
+	{
+		if(IsClientInGame(i))
+			DB_SavePlayer(i);
+	}
 }
 
 void ClansLoaded()
@@ -237,6 +258,7 @@ public void OnClientPostAdminCheck(int client)
 	renameClan[client] = false;			//Ставим флаг, что игрок не переименовывает клан
 	createClan[client] = false;			//Игрок может создавать клан
 	creatingClan[client] = false;
+	ClearPlayerMenuBuffer(client);
 	DB_LoadClient(client);				//Загрузка игрока с базы
 	invitedBy[client][0] = -1;			//Айди того, кто пригласил в клан
 	invitedBy[client][1] = -1;			//Время, когда пригласили в клан
@@ -244,13 +266,16 @@ public void OnClientPostAdminCheck(int client)
 	admin_SelectMode[client][1] = -1;
 	clan_SelectMode[client][0] = -1;
 	clan_SelectMode[client][1] = -1;
+	g_iClientDiffData[client][CD_DIFF_KILLS] = 0;	//v1.86
+	g_iClientDiffData[client][CD_DIFF_DEATHS] = 0;
 	if(!g_bCSS34)
 		UpdatePlayerClanTag(client);
 }
 
 public void OnClientDisconnect(int client)
 {
-	ClanClient = -1;
+	DB_SavePlayer(client);	//v1.86
+	//ClanClient = -1;
 }
 
 Action Death(Handle event, const char[] name, bool db)
@@ -263,7 +288,7 @@ Action Death(Handle event, const char[] name, bool db)
 	
 	if (victim && attacker && (GetClientTeam(victim) != GetClientTeam(attacker)) && AreClientsInDifferentClans(victim, attacker))
 	{
-		KillFunc(attackerInClanDB, victimInClanDB, 1);
+		KillFunc(attacker, victim, 1);
 		if(CheckForLog(LOG_KILLS) && (victimInClanDB != -1 || attackerInClanDB != -1))
 		{
 			char log_buff[LOG_SIZE];

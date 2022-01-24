@@ -7,9 +7,9 @@ bool mySQL = true;
  */
 void ConnectToDatabase()
 {
-    char DB_Error[256];
-    DB_Error[0] = '\0';
-    if (SQL_CheckConfig("clans"))
+	char DB_Error[256];
+	DB_Error[0] = '\0';
+	if (SQL_CheckConfig("clans"))
 	{
 		char buff[50];
 		g_hClansDB = SQL_Connect("clans", true, DB_Error, sizeof(DB_Error));
@@ -22,36 +22,38 @@ void ConnectToDatabase()
 		g_hClansDB = SQLite_UseDatabase("clans", DB_Error, sizeof(DB_Error));
 		mySQL = false;
 	}
-    if(g_hClansDB == INVALID_HANDLE)
+	if(g_hClansDB == INVALID_HANDLE)
 	{
 		SetFailState("[Clans] Unable to connect to database (%s)", DB_Error);
 		return;
 	}
 
-    SQL_FastQuery(g_hClansDB, "CREATE TABLE IF NOT EXISTS `clans_table` (\
-    							`clan_id` INTEGER NOT NULL PRIMARY KEY, \
-    							`clan_name` TEXT, `leader_steam` TEXT, \
-    							`leader_name` TEXT, `date_creation` TEXT, \
-    							`time_creation` INTEGER NOT NULL default '0', \
-    							`members` INTEGER NOT NULL default '0', \
-    							`maxmembers` INTEGER NOT NULL default '0', \
-    							`clan_kills` INTEGER NOT NULL default '0', \
-    							`clan_deaths` INTEGER NOT NULL default '0', \
-    							`clan_coins` INTEGER NOT NULL default '0', \
-    							`clan_type` INTEGER default '0');");
-    SQL_FastQuery(g_hClansDB, "CREATE TABLE IF NOT EXISTS `players_table` (\
-    							`player_id` INTEGER NOT NULL PRIMARY KEY, \
-    							`player_name` TEXT, \
-    							`player_steam` TEXT, \
-    							`player_clanid` INTEGER NOT NULL, \
-    							`player_role` INTEGER NOT NULL, \
-    							`player_kills` INTEGER NOT NULL default '0', \
-    							`player_deaths` INTEGER NOT NULL default '0', \
-    							`player_timejoining` INTEGER NOT NULL)");
+	SQL_FastQuery(g_hClansDB, "CREATE TABLE IF NOT EXISTS `clans_table` (\
+								`clan_id` INTEGER NOT NULL PRIMARY KEY, \
+								`clan_name` TEXT, \
+								`leader_steam` TEXT, \
+								`leader_name` TEXT, \
+								`time_creation` INTEGER NOT NULL default '0', \
+								`maxmembers` INTEGER NOT NULL default '0', \
+								`clan_kills` INTEGER NOT NULL default '0', \
+								`clan_deaths` INTEGER NOT NULL default '0', \
+								`clan_coins` INTEGER NOT NULL default '0', \
+								`clan_type` INTEGER default '0');");
+	SQL_FastQuery(g_hClansDB, "CREATE TABLE IF NOT EXISTS `players_table` (\
+								`player_id` INTEGER NOT NULL PRIMARY KEY, \
+								`player_name` TEXT, \
+								`player_steam` TEXT, \
+								`player_clanid` INTEGER NOT NULL, \
+								`player_role` INTEGER NOT NULL, \
+								`player_kills` INTEGER NOT NULL default '0', \
+								`player_deaths` INTEGER NOT NULL default '0', \
+								`player_timejoining` INTEGER NOT NULL, \
+								`player_lastjoin` INTEGER NOT NULL)");
 
-    SQL_SetCharset(g_hClansDB, "utf8");
-    
-    Upgrade1();
+	SQL_SetCharset(g_hClansDB, "utf8");
+
+	Upgrade1();
+	Upgrade2();
 }
 
 /**
@@ -91,6 +93,42 @@ void Upgrade1()
 	}
 	delete hQuery;
 }
+
+/**
+ * Обновление базы, если версия не выше 1.86
+ * Добавление времени последнего захода
+ */
+void Upgrade2()
+{
+	char query[200];
+	if(mySQL)
+		FormatEx(query, sizeof(query), "SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'players_table' AND COLUMN_NAME = 'player_lastjoin';");
+	else
+		FormatEx(query, sizeof(query), "SELECT COUNT(*) AS CNTREC FROM pragma_table_info('players_table') WHERE name='player_lastjoin';");
+	DBResultSet hQuery = SQL_Query(g_hClansDB, query, sizeof(query));
+	if(hQuery == null)
+	{
+		char error[255];
+		SQL_GetError(g_hClansDB, error, sizeof(error));
+		LogError("[CLANS] Unable to upgrade2: %s", error);
+	}
+	else
+	{
+		if(SQL_FetchRow(hQuery))
+		{
+			if(SQL_FetchInt(hQuery, 0) == 0)	//If 1.86 or low
+			{
+				FormatEx(query, sizeof(query), "ALTER TABLE players_table ADD COLUMN player_lastjoin INT NOT NULL DEFAULT 0");
+				g_hClansDB.Query(DB_LogError, query, 5);
+				FormatEx(query, sizeof(query), "ALTER TABLE clans_table DROP COLUMN date_creation;");
+				g_hClansDB.Query(DB_LogError, query, 6);
+				FormatEx(query, sizeof(query), "ALTER TABLE clans_table DROP COLUMN members;");
+				g_hClansDB.Query(DB_LogError, query, 7);
+			}
+		}
+	}
+	delete hQuery;
+}
 	//============================== CLANS КЛАНЫ ==============================//
 
 /*
@@ -110,7 +148,7 @@ void DB_CreateClan(int leaderid, char[] clanName, int createBy = -1)
 	if(createBy == -1)
 		createBy = leaderid;
 	GetClientName(leaderid, leaderName, sizeof(leaderName));
-	GetClientAuthId(leaderid, AuthId_Steam3, leaderAuth, sizeof(leaderAuth));
+	GetClientAuthId(leaderid, AuthId_Steam2, leaderAuth, sizeof(leaderAuth));
 	char clanNameEscaped[MAX_CLAN_NAME*2+1];
 	g_hClansDB.Escape(clanName, clanNameEscaped, sizeof(clanNameEscaped));
 	data.WriteCell(leaderid);
@@ -157,8 +195,7 @@ void DB_ClanNameCheckCallback(Handle owner, Handle hndl, const char[] error, Dat
 		}
 		else	//Имя не занято
 		{
-			char 	query[1024],		//Запрос в базу данных
-					date[11];		//Дата создания клана
+			char 	date[11];		//Дата создания клана
 			int 	creationTime,	//Время создания клана
 					clanid;			//Айди клана
 			creationTime = GetTime();
@@ -168,14 +205,6 @@ void DB_ClanNameCheckCallback(Handle owner, Handle hndl, const char[] error, Dat
 			data.Reset();
 			FormatTime(date, sizeof(date), "%D", creationTime);
 			
-			SQL_LockDatabase(g_hClansDB);
-			FormatEx(query, sizeof(query), "SELECT MAX(`clan_id`) FROM `clans_table`");
-			DBResultSet rSet = SQL_Query(g_hClansDB, query);
-			SQL_UnlockDatabase(g_hClansDB);
-			if(rSet == null || !rSet.FetchRow())
-				return;
-			clanid = rSet.FetchInt(0)+1;
-
 			if(!g_hClansDB.Escape(leaderName, leaderNameEscaped, sizeof(leaderNameEscaped)))
 			{
 				LogError("[CLANS] Failed to escape the leaderName in ClanNameCheckCallback!");
@@ -186,6 +215,15 @@ void DB_ClanNameCheckCallback(Handle owner, Handle hndl, const char[] error, Dat
 				LogError("[CLANS] Failed to escape the clanName in ClanNameCheckCallback!");
 				return;
 			}
+
+			SQL_LockDatabase(g_hClansDB);
+			char	query[1024];
+			FormatEx(query, sizeof(query), "SELECT MAX(`clan_id`) FROM `clans_table`");
+			DBResultSet rSet = SQL_Query(g_hClansDB, query);
+			SQL_UnlockDatabase(g_hClansDB);
+			if(rSet == null || !rSet.FetchRow())
+				return;
+			clanid = rSet.FetchInt(0)+1;
 
 			//FormatEx(query, sizeof(query), "INSERT INTO `clans_table` (`clan_id`, `clan_name`, `leader_steam`, `leader_name`, `date_creation`, `time_creation`, `members`, `maxmembers`) VALUES ('%d', '%s', '%s', '%s', '%s', '%d', '%d', '%d');",
 			//++maxClanid, clanName, leaderAuth, leaderName, date, creationTime, 1, g_iStartSlotsInClan);
@@ -490,11 +528,15 @@ bool DB_SetClanMaxMembers(int clanid, int maxMembersToSet)
  *
  * @param int clanid - айди клана
  */
-void DB_ResetClan(int clanid)
+void DB_ResetClan(int clanid, bool bResetPlayers = false)
 {
 	char query[150];
 	FormatEx(query, sizeof(query), "UPDATE `clans_table` SET `clan_kills` = '0', `clan_deaths` = '0', `clan_coins` = '0' WHERE `clan_id` = '%d'", clanid);
 	g_hClansDB.Query(DB_ClansError, query, 10);
+	if(bResetPlayers)	//v1.86
+	{
+		FormatEx(query, sizeof(query), "UPDATE players_table SET player_kills = 0, player_deaths = 0 WHERE player_clanid = %d", clanid);
+	}
 }
 
 /*
@@ -520,6 +562,13 @@ void DB_CreateClient(int client)
 {
 	bool leader = g_iClientData[client][CLIENT_ROLE] == CLIENT_LEADER;
 	
+	char clientNameEscaped[MAX_NAME_LENGTH*2+1];
+	if(!g_hClansDB.Escape(g_sClientData[client][CLIENT_NAME], clientNameEscaped, sizeof(clientNameEscaped)))
+	{
+		LogError("[CLANS] Failed to escape the clientName in DB_CreateClient!");
+		return;
+	}
+
 	SQL_LockDatabase(g_hClansDB);
 	char query[800];
 	FormatEx(query, sizeof(query), "SELECT MAX(`player_id`) FROM `players_table`");
@@ -529,15 +578,8 @@ void DB_CreateClient(int client)
 		return;
 	ClanClient = rSet.FetchInt(0)+1;
 	
-	char clientNameEscaped[MAX_NAME_LENGTH*2+1];
-	if(!g_hClansDB.Escape(g_sClientData[client][CLIENT_NAME], clientNameEscaped, sizeof(clientNameEscaped)))
-	{
-		LogError("[CLANS] Failed to escape the clientName in DB_CreateClient!");
-		return;
-	}
-	
-	FormatEx(query, sizeof(query), "INSERT INTO `players_table` (`player_id`, `player_name`, `player_steam`, `player_clanid`, `player_role`, `player_timejoining`) VALUES ('%d', '%s', '%s', '%d', '%d', '%d')",
-	ClanClient, clientNameEscaped, g_sClientData[client][CLIENT_STEAMID], g_iClientData[client][CLIENT_CLANID], g_iClientData[client][CLIENT_ROLE], g_iClientData[client][CLIENT_TIME]);
+	FormatEx(query, sizeof(query), "INSERT INTO players_table (player_id, player_name, player_steam, player_clanid, player_role, player_timejoining, player_lastjoin) VALUES (%d, '%s', '%s', %d, %d, %d, %d)",
+	ClanClient, clientNameEscaped, g_sClientData[client][CLIENT_STEAMID], g_iClientData[client][CLIENT_CLANID], g_iClientData[client][CLIENT_ROLE], g_iClientData[client][CLIENT_TIME], GetTime());
 	g_hClansDB.Query(DB_ClientError, query, 0);
 	
 	if(leader)	//Снимаем старого лидера
@@ -591,8 +633,8 @@ void DB_CreateClientByData(char[] name, const char[] auth, int clanid, int role,
 		LogError("[CLANS] Failed to escape the clientName in DB_CreateClientByData!");
 		return;
 	}
-	FormatEx(query, sizeof(query), "INSERT INTO `players_table` (`player_id`, `player_name`, `player_steam`, `player_clanid`, `player_role`, `player_timejoining`) VALUES ('%d', '%s', '%s', '%d', '%d', '%d')",
-	idOfNewClient, nameEscaped, auth, clanid, role, joinTime);
+	FormatEx(query, sizeof(query), "INSERT INTO players_table (player_id, player_name, player_steam, player_clanid, player_role, player_timejoining, player_lastjoin) VALUES (%d, '%s', '%s', %d, %d, %d, %d)",
+	idOfNewClient, nameEscaped, auth, clanid, role, joinTime, GetTime());
 	g_hClansDB.Query(DB_ClientError, query, 0);
 	if(role == CLIENT_LEADER)
 	{		
@@ -626,9 +668,22 @@ void DB_CreateClientByData(char[] name, const char[] auth, int clanid, int role,
  */
 void DB_LoadClient(int client)
 {
-	char query[200], auth[33];
+	char query[512], auth[32], auth2[32];
 	GetClientAuthId(client, AuthId_Steam3, auth, sizeof(auth));
-	FormatEx(query, sizeof(query), "SELECT * FROM `players_table` WHERE `player_steam` = '%s';", auth);
+	GetClientAuthId(client, AuthId_Steam2, auth2, sizeof(auth2));
+	FormatEx(query, sizeof(query), "SELECT \
+										player_id, \
+										player_name, \
+										player_steam, \
+										player_clanid, \
+										player_role, \
+										player_kills, \
+										player_deaths, \
+										player_timejoining \
+									FROM \
+										players_table \
+									WHERE \
+										player_steam = '%s' OR player_steam = '%s'", auth, auth2);
 	SQL_TQuery(g_hClansDB, DB_LoadClientCallback, query, client);
 }
 
@@ -646,8 +701,11 @@ void DB_LoadClientCallback(Handle owner, Handle hndl, const char[] error, int cl
 	{
 		if(SQL_FetchRow(hndl) && IsClientInGame(client))
 		{
-			char userName[MAX_NAME_LENGTH+1], query[300];
+			char userName[MAX_NAME_LENGTH+1], 
+				 query[300],
+				 userSteam2[32];
 			GetClientName(client, userName, sizeof(userName));
+			GetClientAuthId(client, AuthId_Steam2, userSteam2, sizeof(userSteam2));
 			ClanClient = SQL_FetchInt(hndl, 0);
 			SQL_FetchString(hndl, 1, g_sClientData[client][CLIENT_NAME], MAX_NAME_LENGTH);
 			SQL_FetchString(hndl, 2, g_sClientData[client][CLIENT_STEAMID], MAX_NAME_LENGTH);
@@ -670,6 +728,14 @@ void DB_LoadClientCallback(Handle owner, Handle hndl, const char[] error, int cl
 					FormatEx(query, sizeof(query), "UPDATE `players_table` SET `player_name` = '%s' WHERE `player_steam` = '%s';", userNameEscaped, g_sClientData[client][CLIENT_STEAMID]);
 					g_hClansDB.Query(DB_ClientError, query, 3);
 				}
+			}
+			if(strcmp(userSteam2, g_sClientData[client][CLIENT_STEAMID]))	// v1.86
+			{
+				FormatEx(query, sizeof(query), "UPDATE players_table SET player_steam = '%s' WHERE player_id = %d", userSteam2, ClanClient);
+				g_hClansDB.Query(DB_ClientError, query, 11);
+				FormatEx(query, sizeof(query), "UPDATE clans_table SET leader_steam = '%s' WHERE leader_steam = '%s';", userSteam2, g_sClientData[client][CLIENT_STEAMID]);
+				g_hClansDB.Query(DB_ClientError, query, 11);
+				FormatEx(g_sClientData[client][CLIENT_STEAMID], MAX_NAME_LENGTH, "%s", userSteam2);
 			}
 			FormatEx(query, sizeof(query), "SELECT `clan_name` FROM `clans_table` WHERE `clan_id` = '%d';", g_iClientData[client][CLIENT_CLANID]);
 			g_hClansDB.Query(DB_LoadClanTagCallback, query, client);
@@ -891,6 +957,58 @@ void DB_ResetClient(int clientID)
 	g_hClansDB.Query(DB_ClientError, query, 9);
 }
 
+/**
+ * Save player (v1.86)
+ *
+ * @param int iClient - client's index
+ *
+ * @noreturm
+ */
+void DB_SavePlayer(int iClient)
+{
+	if(iClient > 0 && iClient <= MaxClients)
+	{
+		int iClientID = playerID[iClient];
+		if(iClientID >= 0)
+		{
+			char query[512];
+			if((g_iClientDiffData[iClient][CD_DIFF_KILLS] != 0 || g_iClientDiffData[iClient][CD_DIFF_DEATHS] != 0))
+			{
+				FormatEx(query, sizeof(query), "UPDATE players_table SET \
+												player_kills = \
+													CASE WHEN player_kills + %d < 0 THEN 0 \
+													ELSE player_kills + %d END, \
+												player_deaths = \
+													CASE WHEN player_deaths + %d < 0 THEN 0 \
+													ELSE player_deaths + %d END \
+												WHERE player_id = %d",
+												g_iClientDiffData[iClient][CD_DIFF_KILLS],
+												g_iClientDiffData[iClient][CD_DIFF_KILLS],
+												g_iClientDiffData[iClient][CD_DIFF_DEATHS],
+												g_iClientDiffData[iClient][CD_DIFF_DEATHS],
+												iClientID);
+				g_hClansDB.Query(DB_ClientError, query, 12);
+				//UPDATE IN CLAN
+				FormatEx(query, sizeof(query), "UPDATE clans_table SET \
+												clan_kills = \
+													CASE WHEN clan_kills + %d < 0 THEN 0 \
+													ELSE clan_kills + %d END, \
+												clan_deaths = \
+													CASE WHEN clan_deaths + %d < 0 THEN 0 \
+													ELSE clan_deaths + %d END \
+												WHERE clan_id = %d",
+												g_iClientDiffData[iClient][CD_DIFF_KILLS],
+												g_iClientDiffData[iClient][CD_DIFF_KILLS],
+												g_iClientDiffData[iClient][CD_DIFF_DEATHS],
+												g_iClientDiffData[iClient][CD_DIFF_DEATHS],
+												g_iClientData[iClient][CLIENT_CLANID]);
+				g_hClansDB.Query(DB_ClansError, query, 12);
+			}
+			FormatEx(query, sizeof(query), "UPDATE players_table SET player_lastjoin = %d WHERE player_id = %d", GetTime(), iClientID);
+			g_hClansDB.Query(DB_ClientError, query, 13);
+		}
+	}
+}
 	//============================== LOG ERRORS ЛОГИ ОШИБОК ==============================//
 
 /**
@@ -905,7 +1023,7 @@ void DB_ClansError(Handle owner, Handle hndl, const char[] error, int errid)
 {
     if(error[0] != 0)
     {
-        char err[30];
+        char err[50];
         switch(errid)
         {
             case 0:	err = "create";
@@ -919,6 +1037,9 @@ void DB_ClansError(Handle owner, Handle hndl, const char[] error, int errid)
             case 8: err = "update name";
             case 9: err = "delete";
             case 10: err = "reset";
+			case 11: err = "update leader steam";
+			case 12: err = "update when client disconnect";
+			default: err = "UNKNOWN ERROR";
         }
         LogError("[CLANS] Query Fail with clan (code #%d, %s): %s", errid, err, error);
     }
@@ -936,7 +1057,7 @@ void DB_ClientError(Handle owner, Handle hndl, const char[] error, int errid)
 {
     if(error[0] != 0)
     {
-        char err[30];
+        char err[50];
         switch(errid)
         {
             case 0:	err = "create";
@@ -950,6 +1071,10 @@ void DB_ClientError(Handle owner, Handle hndl, const char[] error, int errid)
             case 8: err = "delete by clanid";
             case 9: err = "reset";
             case 10: err = "update clan";
+			case 11: err = "update steam";
+			case 12: err = "save player";
+			case 13: err = "update last join";
+			default: err = "UNKNOWN ERROR";
         }
         LogError("[CLANS] Query Fail with client (code #%d, %s): %s", errid, err, error);
     }
@@ -973,6 +1098,10 @@ void DB_LogError(Handle owner, Handle hndl, const char[] error, int errid)
 			case 2: err = "update players_table";
 			case 3: err = "update clans_table";
 			case 4: err = "execute query in queue";
+			case 5: err = "add last time join";
+			case 6: err = "remove column date_creation";
+			case 7: err = "remove column members";
+			default: err = "UNKNOWN ERROR";
 		}
 		LogError("[CLANS] Query Fail with logging (code #%d, %s): %s", errid, err, error);
 	}

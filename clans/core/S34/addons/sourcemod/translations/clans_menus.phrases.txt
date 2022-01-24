@@ -352,4 +352,16 @@
 		"en"	"Do you want to set clan system clan tag?\nIf you are in clan, your clan tag is your clan's name\nElse your clan tag will be empty"
 		"ru"	"Вы хотите установить клан тег клановой системы?\nЕсли Вы в клане, то Ваш тег - название Вашего клана\nИначе Ваш тег будет пустым"
 	}
+	
+	"ActiveNow"
+	{
+		"en"	"ONLINE ヽ(°□° )ノ"
+		"ru"	"ОНЛАЙН ヽ(°□° )ノ"
+	}
+	
+	"LongTimeNoVisit"
+	{
+		"en"	"hasn't join for a long time (︶︹︺)"
+		"ru"	"давно не видели (︶︹︺)"
+	}
 }

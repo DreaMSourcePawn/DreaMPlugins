@@ -10,6 +10,9 @@
 #define MAX_CLAN_NAME 10
 #define MAX_INVITATION_TIME 30							/*		Time in seconds to accept the invitation	*/
 
+#define CLAN_INVALID_CLAN -1
+#define CLAN_INVALID_CLIENT -1
+
 #define PERM_INVITE 1
 #define PERM_GIVECOINS 2
 #define PERM_EXPAND 3

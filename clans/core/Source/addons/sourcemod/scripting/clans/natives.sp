@@ -25,6 +25,7 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 	CreateNative("Clans_GetClientTimeToCreateClan", Native_GetClientTimeToCreateClan);
 	CreateNative("Clans_GetClientClanName", Native_GetClientClanName);
 	CreateNative("Clans_GetClanMembersOnline", Native_GetClanMembersOnline);
+	CreateNative("Clans_ResetClient", Native_ResetClient);
 	//Clans
 	CreateNative("Clans_IsClanValid", Native_IsClanValid);
 	CreateNative("Clans_GetClanName", Native_GetClanName);
@@ -43,6 +44,7 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 	CreateNative("Clans_ShowClanInfo", Native_ShowClanInfo);
 	CreateNative("Clans_ShowClanMembers", Native_ShowClanMembers);
 	CreateNative("Clans_ShowClanList", Native_ShowClanList);
+	CreateNative("Clans_ResetClan", Native_ResetClan);
 	//Other
 	CreateNative("Clans_GetClanDatabase", Native_GetClanDatabase);
 	CreateNative("Clans_IsMySQLDatabase", Native_IsMySQLDatabase);
@@ -63,25 +65,29 @@ public any Native_UseClanTag(Handle plugin, int numParams)
 public any Native_IsClanLeader(Handle plugin, int numParams)
 {
 	int clientID = GetNativeCell(1);
-	return IsClientClanLeaderByID(clientID);
+	bool bFromDB = GetNativeCell(2);
+	return IsClientClanLeaderByID(clientID, bFromDB);
 }
 
 public any Native_IsClanCoLeader(Handle plugin, int numParams)
 {
 	int clientID = GetNativeCell(1);
-	return IsClientClanCoLeaderByID(clientID);
+	bool bFromDB = GetNativeCell(2);
+	return IsClientClanCoLeaderByID(clientID, bFromDB);
 }
 
 public any Native_IsClanElder(Handle plugin, int numParams)
 {
 	int clientID = GetNativeCell(1);
-	return IsClientClanElderByID(clientID);
+	bool bFromDB = GetNativeCell(2);
+	return IsClientClanElderByID(clientID, bFromDB);
 }
 
 public int Native_GetClientRole(Handle plugin, int numParams)
 {
 	int clientID = GetNativeCell(1);
-	return GetClientRoleByID(clientID);
+	bool bFromDB = GetNativeCell(2);
+	return GetClientRoleByID(clientID, bFromDB);
 }
 
 public int Native_SetClientRole(Handle plugin, int numParams)
@@ -107,9 +113,10 @@ public int Native_GetClientID(Handle plugin, int numParams)
 public int Native_GetClientClan(Handle plugin, int numParams)
 {
 	int clientID = GetNativeCell(1);
+	bool bFromDB = GetNativeCell(2);
 	if(clientID >= 0)
 	{
-		return GetClientClanByID(clientID);
+		return GetClientClanByID(clientID, bFromDB);
 	}
 	return -1;
 }
@@ -127,15 +134,17 @@ public int Native_SetClientClan(Handle plugin, int numParams)
 public int Native_GetOnlineClientClan(Handle plugin, int numParams)
 {
 	int client = GetNativeCell(1);
+	bool bFromDB = GetNativeCell(2);
 	if(client < 1 || client > MaxClients || !IsClientInGame(client) || ClanClient < 0)
 		return -1;
-	return GetClientClanByID(ClanClient);
+	return GetClientClanByID(ClanClient, bFromDB);
 }
 
 public int Native_GetClientKills(Handle plugin, int numParams)
 {
 	int clientID = GetNativeCell(1);
-	return GetClientKillsInClanByID(clientID);
+	bool bFromDB = GetNativeCell(2);
+	return GetClientKillsInClanByID(clientID, bFromDB);
 }
 
 public any Native_SetClientKills(Handle plugin, int numParams)
@@ -148,7 +157,8 @@ public any Native_SetClientKills(Handle plugin, int numParams)
 public int Native_GetClientDeaths(Handle plugin, int numParams)
 {
 	int clientID = GetNativeCell(1);
-	return GetClientDeathsInClanByID(clientID);
+	bool bFromDB = GetNativeCell(2);
+	return GetClientDeathsInClanByID(clientID, bFromDB);
 }
 
 public any Native_SetClientDeaths(Handle plugin, int numParams)
@@ -262,6 +272,13 @@ public int Native_GetClientClanName(Handle plugin, int iParams)
 	int iClient = GetNativeCell(1);
 	int iBufSize = GetNativeCell(3);
 	SetNativeString(2, g_sClientData[iClient][CLIENT_CLANNAME], iBufSize);
+	return 0;
+}
+
+public int Native_ResetClient(Handle plugin, int iParams)
+{
+	int iClientID = GetNativeCell(1);
+	ResetClient(iClientID);
 	return 0;
 }
   //=============================== CLANS ===============================//
@@ -386,6 +403,14 @@ public int Native_SetClanType(Handle plugin, int numParams)
 	else if(type > CLAN_OPEN)
 		type = CLAN_OPEN
 	SetClanType(clanid, type);
+	return 0;
+}
+
+public int Native_ResetClan(Handle plugin, int iParams)
+{
+	int iClanid = GetNativeCell(1);
+	bool bResetPlayers = GetNativeCell(2);
+	ResetClan(iClanid, bResetPlayers);
 	return 0;
 }
 
