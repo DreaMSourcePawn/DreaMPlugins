@@ -37,7 +37,7 @@ Action Command_CreateClan(int client, int args)
 		CPrintToChat(client, print_buff);
 		return Plugin_Handled;
 	}
-	char clanName[MAX_CLAN_NAME+1], userName[MAX_NAME_LENGTH], auth[33], date[11];
+	char clanName[MAX_CLAN_NAME+1];
 	if(args != 1)
 	{
 		FormatEx(print_buff, sizeof(print_buff), "%T", "c_Wrongcclan", client);
@@ -61,11 +61,6 @@ Action Command_CreateClan(int client, int args)
 			clanName[i] = buff[i];
 		clanName[MAX_CLAN_NAME] = '\0';
 	}
-	
-	GetClientName(client, userName, sizeof(userName));
-	GetClientAuthId(client, AuthId_Steam3, auth, sizeof(auth));
-	FormatTime(date, 10, "%D");
-	date[10] = '\0';
 	
 	CreateClan(client, clanName);
 	return Plugin_Handled;
@@ -97,12 +92,14 @@ public Action Command_LeaveClan(int client, int args)
 
 public Action Command_MyClan(int client, int args)
 {
+	ClearPlayerMenuBuffer(client);
 	ThrowClanMenuToClient(client);
 	return Plugin_Handled;
 }
 
 public Action Command_MyStats(int client, int args)
 {
+	ClearPlayerMenuBuffer(client);
 	int clanid = GetClientClanByID(ClanClient);
 	if(clanid != -1)
 		ThrowPlayerStatsToClient(client, ClanClient);
@@ -158,12 +155,14 @@ public Action Command_Invite(int client, int args)
 		CPrintToChat(client, print_buff);
 		return Plugin_Handled;
 	}
+	ClearPlayerMenuBuffer(client);
 	ThrowInviteList(client);
 	return Plugin_Handled;
 }
 
 public Action Command_TopClans(int client, int args)
 {
+	ClearPlayerMenuBuffer(client);
 	ThrowTopsMenuToClient(client);
 	return Plugin_Handled;
 }

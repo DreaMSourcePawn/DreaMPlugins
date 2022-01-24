@@ -29,33 +29,37 @@ native int Clans_GetClientID(int client);
  * Check if client is clan leader
  *
  * @param		clientID - client's id in database
+ * @param		bool bFromDB - get data from database (1.86T). Returns the cached value if player is online
  * @return		true - player is clan leader, false - otherwise
  */
-native bool Clans_IsClanLeader(int clientID);
+native bool Clans_IsClanLeader(int clientID, bool bFromDB = false);
 
 /**
  * Check if client is clan co-leader
  *
  * @param		clientID - client's id in database
+ * @param		bool bFromDB - get data from database (1.86T). Returns the cached value if player is online
  * @return		true - player is clan co-leader, false - otherwise
  */
-native bool Clans_IsClanCoLeader(int clientID);
+native bool Clans_IsClanCoLeader(int clientID, bool bFromDB = false);
 
 /**
  * Check if client is clan elder
  *
  * @param		clientID - client's id in database
+ * @param		bool bFromDB - get data from database (1.86T). Returns the cached value if player is online
  * @return		true - player is clan elder, false - otherwise
  */
-native bool Clans_IsClanElder(int clientID);
+native bool Clans_IsClanElder(int clientID, bool bFromDB = false);
 
 /**
  * Get client's role in his/her clan
  *
  * @param		clientID - client's id in database
+ * @param		bool bFromDB - get data from database (1.86T). Returns the cached value if player is online
  * @return		client's role
  */
-native int Clans_GetClientRole(int clientID);
+native int Clans_GetClientRole(int clientID, bool bFromDB = false);
 
 /**
  * Set client's role in his/her clan
@@ -70,9 +74,10 @@ native void Clans_SetClientRole(int clientID, int role);
  * Get client clan's id in database
  *
  * @param		clientID - client's id in database
+ * @param		bool bFromDB - get data from database (1.86T). Returns the cached value if player is online
  * @return		client clan's id in database
  */
-native int Clans_GetClientClan(int clientID);
+native int Clans_GetClientClan(int clientID, bool bFromDB = false);
 
 /**
  * Set client clan's id in database
@@ -87,17 +92,19 @@ native int Clans_SetClientClan(int clientID, int clanid);
  * Get online client clan's id in database
  *
  * @param		clientID - client's id at server
+ * @param		bool bFromDB - get data from database (1.86T). Returns the cached value if player is online
  * @return		client clan's id in database, -1 if client isn't in any clan
  */
-native int Clans_GetOnlineClientClan(int client);
+native int Clans_GetOnlineClientClan(int client, bool bFromDB = false);
 
 /**
  * Get client's number of kills in current clan
  *
  * @param		clientID - client's id in database
+ * @param		bool bFromDB - get data from database (1.86T). Returns the cached value if player is online
  * @return		client's number of kills
  */
-native int Clans_GetClientKills(int clientID);
+native int Clans_GetClientKills(int clientID, bool bFromDB = false);
 
 /**
  * Set client's kills in clan
@@ -112,9 +119,10 @@ native bool Clans_SetClientKills(int clientID, int kills);
  * Get client's number of deaths in current clan
  *
  * @param		clientID - client's id in database
+ * @param		bool bFromDB - get data from database (1.86T). Returns the cached value if player is online
  * @return		client's number of deaths
  */
-native int Clans_GetClientDeaths(int clientID);
+native int Clans_GetClientDeaths(int clientID, bool bFromDB = false);
 
 /**
  * Set client's deaths in clan
@@ -154,8 +162,8 @@ native bool Clans_ShowPlayerInfo(int client, int otherID);
 /**
  * Get a permission to create a clan for client
  *
- * @param		client - client's index, who will see the stats
- * @param		bool status - true to give permission, false to take it
+ * @param		client - client's index, whose permission will be checked
+ *
  * @return		true if client has the permission, false otherwise
  */
 native bool Clans_GetCreatePerm(int client);
@@ -163,7 +171,7 @@ native bool Clans_GetCreatePerm(int client);
 /**
  * Set a permission to create a clan for client
  *
- * @param		client - client's index, who will see the stats
+ * @param		client - client's index, whose permission will be changed
  * @param		bool status - true to give permission, false to take it
  * @noreturn
  */
@@ -178,7 +186,7 @@ native void Clans_SetCreatePerm(int client, bool status);
 native int Clans_GetClientTimeInClan(int clientID);
 
 /**
- * Get client clan's name
+ * Get client clan's name (get from cache)
  *
  * @param		int iClient - client's index
  * @param		char[] sBuffer - buffer to store the name
@@ -196,3 +204,12 @@ native void Clans_GetClientClanName(int iClient, char[] sBuffer, int iBufSize);
  * @return 	remaining time in minutes
  */
 native int Clans_GetClientTimeToCreateClan(int iClient);
+
+/**
+ * Reset a player in clan
+ *
+ * @param		int iClientID - client's id in the database
+ *
+ * @noreturn
+ */
+native void Clans_ResetClient(int iClientID);
