@@ -31,7 +31,7 @@ Action Command_CreateClan(int client, int args)
 		CPrintToChat(client, print_buff);
 		return Plugin_Handled;
 	}
-	if(GetClientClanByID(ClanClient) != -1)
+	if(ClanClient != -1)	//v1.87T
 	{
 		FormatEx(print_buff, sizeof(print_buff), "%T", "c_YouAreAlreadyInClan", client);
 		CPrintToChat(client, print_buff);
@@ -69,7 +69,8 @@ Action Command_CreateClan(int client, int args)
 public Action Command_LeaveClan(int client, int args)
 {
 	char print_buff[BUFF_SIZE];
-	int clanid = GetClientClanByID(ClanClient);
+	//int clanid = GetClientClanByID(ClanClient);
+	int clanid = g_iClientData[client][CLIENT_CLANID];	//v1.87T
 	if(clanid == -1)
 	{
 		FormatEx(print_buff, sizeof(print_buff), "%T", "c_YouAreNotInClan", client);
@@ -78,10 +79,8 @@ public Action Command_LeaveClan(int client, int args)
 	}
 	if(CheckForLog(LOG_CLIENTACTION))
 	{
-		char log_buff[LOG_SIZE],
-			 clanName[MAX_CLAN_NAME+1];
-		GetClanName(clanid, clanName, sizeof(clanName));
-		FormatEx(log_buff, sizeof(log_buff), "%T", "L_LeaveClan", LANG_SERVER, clanName);
+		char log_buff[LOG_SIZE];
+		FormatEx(log_buff, sizeof(log_buff), "%T", "L_LeaveClan", LANG_SERVER, g_sClientData[client][CLIENT_CLANNAME]);
 		DB_LogAction(ClanClient, true, clanid, log_buff, -1, true, clanid, LOG_CLIENTACTION);
 	}
 	DeleteClientByID(ClanClient);
@@ -122,7 +121,7 @@ public Action Command_AcceptClanInvitation(int client, int args)
 		return Plugin_Handled;
 	}
 	int whoInvited = invitedBy[client][0];
-	int invitingClan = GetClientClanByID(playerID[whoInvited]);
+	int invitingClan = g_iClientData[playerID[whoInvited]][CLIENT_CLANID];	//v1.87T
 	SetOnlineClientClan(client, invitingClan, CLIENT_MEMBER);
 	FormatEx(buff, sizeof(buff), "%T", "c_JoinSuccess", client);
 	CPrintToChat(client, buff);
@@ -130,7 +129,8 @@ public Action Command_AcceptClanInvitation(int client, int args)
 	{
 		char log_buff[LOG_SIZE],
 			 clanName[MAX_CLAN_NAME+1];
-		GetClanName(invitingClan, clanName, sizeof(clanName));
+		//GetClanName(invitingClan, clanName, sizeof(clanName));
+		FormatEx(clanName, sizeof(clanName), g_sClientData[playerID[whoInvited]][CLIENT_CLANNAME]);
 		FormatEx(log_buff, sizeof(log_buff), "%T", "L_CreatePlayer", LANG_SERVER, clanName);
 		DB_LogAction(ClanClient, true, GetClientClanByID(ClanClient), log_buff, -1, true, invitingClan, LOG_CLIENTACTION);
 	}
@@ -140,24 +140,39 @@ public Action Command_AcceptClanInvitation(int client, int args)
 
 public Action Command_Invite(int client, int args)
 {
-	int clanid = GetClientClanByID(ClanClient);
-	if(!CanPlayerDo(ClanClient, PERM_INVITE))
+	//int clanid = GetClientClanByID(ClanClient);
+	int clanid = g_iClientData[client][CLIENT_CLANID];
+	if(!CanPlayerDo(client, PERM_INVITE))
 	{
-		char print_buff[BUFF_SIZE];
-		FormatEx(print_buff, sizeof(print_buff), "%T", "c_CantInvite", client);
-		CPrintToChat(client, print_buff);
+		CPrintToChat(client, "%T", "c_CantInvite", client);
 		return Plugin_Handled;
 	}
-	if(GetClanMembers(clanid) >= GetClanMaxMembers(clanid))
-	{
-		char print_buff[BUFF_SIZE];
-		FormatEx(print_buff, sizeof(print_buff), "%T", "c_MaxMembersInClan", client);
-		CPrintToChat(client, print_buff);
-		return Plugin_Handled;
-	}
-	ClearPlayerMenuBuffer(client);
-	ThrowInviteList(client);
+	char query[256];
+	FormatEx(query, sizeof(query), "SELECT (SELECT COUNT(*) FROM players_table WHERE player_clanid = %d), maxmembers FROM clans_table WHERE clan_id = %d", clanid, clanid);
+	g_hClansDB.Query(DMCC_InviteCallback, query, client);
 	return Plugin_Handled;
+}
+
+void DMCC_InviteCallback(Database db, DBResultSet rSet, const char[] sError, int client)
+{
+	if(sError[0])
+	{
+		LogError("[CLANS] Failed to get members and maxmembers in Command_Invite: %s", sError);
+	}
+	else if(rSet.FetchRow())
+	{
+		int iMembers = rSet.FetchInt(0);
+		int iMaxMembers = rSet.FetchInt(1);
+		if(iMembers >= iMaxMembers)
+		{
+			CPrintToChat(client, "%T", "c_MaxMembersInClan", client);
+		}
+		else
+		{
+			ClearPlayerMenuBuffer(client);
+			ThrowInviteList(client);
+		}
+	}
 }
 
 public Action Command_TopClans(int client, int args)
@@ -202,8 +217,7 @@ bool CanSeeMessageInClanChat(bool senderAlive, int senderTeam, int client)
 public Action Command_ClanChat(int client, int args)
 {
 	char buff[BUFF_SIZE], 
-		 userName[MAX_NAME_LENGTH+1], 
-		 clanName[MAX_CLAN_NAME],
+		 userName[MAX_NAME_LENGTH+1],
 		 print_buff[350];
 	if(ClanClient == -1)
 	{
@@ -211,9 +225,8 @@ public Action Command_ClanChat(int client, int args)
 		CPrintToChat(client, buff);
 		return Plugin_Handled;
 	}
-	int clanid = GetClientClanByID(ClanClient);
-	int role = GetClientRoleByID(ClanClient);
-	GetClanName(clanid, clanName, sizeof(clanName));
+	int clanid = g_iClientData[client][CLIENT_CLANID];	//v1.87T
+	int role = g_iClientData[client][CLIENT_ROLE];
 	GetCmdArgString(buff, sizeof(buff));
 	if(strlen(buff) < 1)
 		return Plugin_Handled;
@@ -234,12 +247,12 @@ public Action Command_ClanChat(int client, int args)
 	int clientTeam = GetClientTeam(client);
 	for(int i = 1; i <= MaxClients; i++)
 	{
-		if(CanSeeMessageInClanChat(clientAlive, clientTeam, i) && !strcmp(g_sClientData[i][CLIENT_CLANNAME], clanName))
+		if(CanSeeMessageInClanChat(clientAlive, clientTeam, i) && clanid == g_iClientData[i][CLIENT_CLANID])	//v1.87T
 		{
 			if(!g_bCSS34)
 				CPrintToChat(i, print_buff);
 			else
-				CPrintToChat(i, "{green}[%s] %s: {lightgreen}%s", clanName, userName, buff);
+				CPrintToChat(i, "{green}[%s] %s: {lightgreen}%s", g_sClientData[client][CLIENT_CLANNAME], userName, buff);
 		}
 	}
 	if(CheckForLog(LOG_CLANCHAT))
@@ -266,37 +279,61 @@ Action Command_JoinClan(int client, int args)
 		CPrintToChat(client, print_buff);
 		return Plugin_Handled;
 	}
-	int clanid, type;
+	int clanid;
 	char buff[50];
 	GetCmdArg(1, buff, sizeof(buff));
 	TrimString(buff);
 	clanid = StringToInt(buff);
-	if(IsClanValid(clanid))
+	char query[256];
+	FormatEx(query, sizeof(query), "SELECT \
+										clan_id, \
+										clan_type, \
+										(SELECT COUNT(*) FROM players_table WHERE player_clanid = %d), \
+										maxmembers, \
+										clan_name \
+									FROM clans_table WHERE clan_id = %d", clanid, clanid);
+	g_hClansDB.Query(DBCC_JoinClanCallback, query, client);
+	return Plugin_Handled;
+}
+
+void DBCC_JoinClanCallback(Database db, DBResultSet rSet, const char[] sError, int client)
+{
+	if(sError[0])
 	{
-		type = GetClanType(clanid);
-		if(type == 0)
+		LogError("[CLANS] Failed : %s", sError);
+	}
+	else
+	{
+		if(rSet.FetchRow())
 		{
-			FormatEx(print_buff, sizeof(print_buff), "%T", "c_JoinClosedClan", client)
-			CPrintToChat(client, print_buff);
-			return Plugin_Handled;
+			char clanName[MAX_CLAN_NAME+1];
+			int clanid = rSet.FetchInt(0);
+			int iType = rSet.FetchInt(1);
+			int iMembers = rSet.FetchInt(2);
+			int iMaxMembers = rSet.FetchInt(3);
+			rSet.FetchString(4, clanName, sizeof(clanName));
+			if(iType == 0)
+			{
+				CPrintToChat(client, "%T", "c_JoinClosedClan", client);
+				return;
+			}
+			if(iMembers >= iMaxMembers)
+			{
+				CPrintToChat(client, "%T", "c_MaxMembersInClan", client);
+				return;
+			}
+			SetOnlineClientClan(client, clanid, 0);
+			CPrintToChat(client, "%T", "c_JoinSuccess", client);
+			if(CheckForLog(LOG_CLIENTACTION))
+			{
+				char log_buff[LOG_SIZE];
+				FormatEx(log_buff, sizeof(log_buff), "%T", "L_CreatePlayer", LANG_SERVER, clanName);
+				DB_LogAction(ClanClient, true, clanid, log_buff, -1, true, -1, LOG_CLIENTACTION);
+			}
 		}
-		if(GetClanMembers(clanid) >= GetClanMaxMembers(clanid))
+		else
 		{
-			FormatEx(print_buff, sizeof(print_buff), "%T", "c_MaxMembersInClan", client)
-			CPrintToChat(client, print_buff);
-			return Plugin_Handled;
-		}
-		SetOnlineClientClan(client, clanid, 0);
-		FormatEx(print_buff, sizeof(print_buff), "%T", "c_JoinSuccess", client)
-		CPrintToChat(client, print_buff);
-		if(CheckForLog(LOG_CLIENTACTION))
-		{
-			char log_buff[LOG_SIZE],
-				 clanName[MAX_CLAN_NAME+1];
-			GetClanName(clanid, clanName, sizeof(clanName));
-			FormatEx(log_buff, sizeof(log_buff), "%T", "L_CreatePlayer", LANG_SERVER, clanName);
-			DB_LogAction(ClanClient, true, clanid, log_buff, -1, true, -1, LOG_CLIENTACTION);
+			CPrintToChat(client, "%T", "c_ClanDoesntExist", client);
 		}
 	}
-	return Plugin_Handled;
 }

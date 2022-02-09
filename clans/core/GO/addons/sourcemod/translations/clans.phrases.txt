@@ -468,20 +468,20 @@
 	
 	"NoClans"
 	{
-		"en"	"{lightred}[CSHOP] {lightgreen}There are no clans to show!"
-		"ru"	"{lightred}[CSHOP] {lightgreen}Нет кланов для вывода!"
+		"en"	"{lightred}[CLANS] {lightgreen}There are no clans to show!"
+		"ru"	"{lightred}[CLANS] {lightgreen}Нет кланов для вывода!"
 	}
 	
 	"NoPlayers"
 	{
-		"en"	"{lightred}[CSHOP] {lightgreen}There are no players to show!"
-		"ru"	"{lightred}[CSHOP] {lightgreen}Нет игроков для вывода!"
+		"en"	"{lightred}[CLANS] {lightgreen}There are no players to show!"
+		"ru"	"{lightred}[CLANS] {lightgreen}Нет игроков для вывода!"
 	}
 	
 	"c_WrongRoleFlag"
 	{
-		"en"	"{lightred}[CSHOP] {lightgreen}Wrong role flag inputted!"
-		"ru"	"{lightred}[CSHOP] {lightgreen}Неверно задана роль!"
+		"en"	"{lightred}[CLANS] {lightgreen}Wrong role flag inputted!"
+		"ru"	"{lightred}[CLANS] {lightgreen}Неверно задана роль!"
 	}
 
 	"c_AdminSetCoins"

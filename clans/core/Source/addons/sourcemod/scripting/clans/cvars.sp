@@ -103,6 +103,8 @@ void RegCVars()
 	GetConVarString(g_hClanChatFilter, buff, sizeof(buff));
 	g_iClanChatFilter = GetChatFilter(buff);
 	HookConVarChange(g_hRKickPlayer, OnConVarChange);
+
+	g_cvSteamAuth2 = CreateConVar("sm_clans_steamauth2", "1", "1 - use auth2 (STEAM_) instead of auth3 (U:)", 0, true, 0.0, true, 1.0);
 	
 	AutoExecConfig(true, "clans_settings", "clans");
 }

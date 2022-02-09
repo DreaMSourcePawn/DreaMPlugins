@@ -174,3 +174,13 @@ native bool Clans_ShowClanList(int client, bool showClientClan);
  * @noreturn
  */
 native void Clans_ResetClan(int iClanid, bool bResetPlayersInClan = false);
+
+/**
+ * Reset a clan info (kills, deaths, coins)
+ *
+ * @param		bool bResetPlayersInClan - flag if the players in clan will be reset (kills, deaths -> 0)
+ * @param		bool bCoinsReset - flag if the clan coins will be reset
+ *
+ * @noreturn
+ */
+native void Clans_ResetAllClans(bool bResetPlayersInClan = false, bool bCoinsReset = false);

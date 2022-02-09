@@ -1,19 +1,38 @@
+//Forwards below
+GlobalForward	g_hACMOpened, 		//AdminClanMenuOpened
+				g_hACMSelected,		//AdminClanMenuSelected
+				g_hCMOpened, 		//ClanMenuOpened
+				g_hCMSelected,		//ClanMenuSelected
+				g_hCSOpened, 		//ClanStatsOpened
+				g_hPSOpened, 		//PlayerStatsOpened
+				g_hClanAdded,		//ClansAdded
+				g_hClanDeleted,		//ClansDeleted
+				g_hClientAdded,		//ClientAdded
+				g_hClientDeleted,	//ClientDeleted
+				g_hClanSelectedInList,	//Clans_OnClanSelectedInList	1.8v
+				g_hClanMemberSelectedInList,	//Clans_OnClanMemberSelectedInList	1.8v NOT DONE
+				g_hOnClanCoinsGive,		//Clans_OnClanCoinsGive	1.8v
+				g_hOnClanClientLoaded,	//Clans_OnClientLoaded 1.83v
+				g_hOnTopOpened,			//Clans_OnTopMenuOpened	v1.87
+				g_hOnTopSelected;		//Clans_OnTopMenuSelected
+
 void CreateForwards()
 {
 	g_hACMOpened = CreateGlobalForward("Clans_OnAdminClanMenuOpened", ET_Ignore, Param_Any, Param_Cell);
 	g_hACMSelected = CreateGlobalForward("Clans_OnAdminClanMenuSelected", ET_Ignore, Param_Any, Param_Cell, Param_Cell);
 	g_hCMOpened = CreateGlobalForward("Clans_OnClanMenuOpened", ET_Ignore, Param_Any, Param_Cell);
 	g_hCMSelected = CreateGlobalForward("Clans_OnClanMenuSelected", ET_Ignore, Param_Any, Param_Cell, Param_Cell);
-	g_hCSOpened = CreateGlobalForward("Clans_OnClanStatsOpened", ET_Ignore, Param_Any, Param_Cell);
-	g_hPSOpened = CreateGlobalForward("Clans_OnPlayerStatsOpened", ET_Ignore, Param_Any, Param_Cell);
-	g_hClansLoaded = CreateGlobalForward("Clans_OnClansLoaded", ET_Ignore);
-	g_hClanAdded = CreateGlobalForward("Clans_OnClanAdded", ET_Ignore, Param_Cell, Param_Cell);
+	g_hCSOpened = CreateGlobalForward("Clans_OnClanStatsOpened", ET_Ignore, Param_Any, Param_Cell, Param_Cell);
+	g_hPSOpened = CreateGlobalForward("Clans_OnPlayerStatsOpened", ET_Ignore, Param_Any, Param_Cell, Param_Cell);
+	g_hClanAdded = CreateGlobalForward("Clans_OnClanAdded", ET_Ignore, Param_Cell, Param_String, Param_Cell);
 	g_hClanDeleted = CreateGlobalForward("Clans_OnClanDeleted", ET_Ignore, Param_Cell);
 	g_hClientAdded = CreateGlobalForward("Clans_OnClientAdded", ET_Ignore, Param_Cell, Param_Cell, Param_Cell);
 	g_hClientDeleted = CreateGlobalForward("Clans_OnClientDeleted", ET_Ignore, Param_Cell, Param_Cell, Param_Cell);
 	g_hClanSelectedInList = CreateGlobalForward("Clans_OnClanSelectedInList", ET_Ignore, Param_Any, Param_Cell, Param_Cell);
 	g_hOnClanCoinsGive = CreateGlobalForward("Clans_OnClanCoinsGive", ET_Ignore, Param_Cell, Param_CellByRef, Param_Cell);
 	g_hOnClanClientLoaded = CreateGlobalForward("Clans_OnClientLoaded", ET_Ignore, Param_Cell, Param_Cell, Param_Cell);
+	g_hOnTopOpened = CreateGlobalForward("Clans_OnTopMenuOpened", ET_Ignore, Param_Any, Param_Cell);
+	g_hOnTopSelected = CreateGlobalForward("Clans_OnTopMenuSelected", ET_Ignore, Param_Any, Param_Cell, Param_Cell);
 }
 
 /**
@@ -81,12 +100,14 @@ void F_OnClanMenuSelected(Handle playerClanMenu, int client, int option)
  *
  * @param Handle clanStatsMenu - clan stats menu
  * @param int client - who opened the menu
+ * @param int clanid - clan, whose stats is opened
  */
-void F_OnClanStatsOpened(Handle clanStatsMenu, int client)
+void F_OnClanStatsOpened(Handle clanStatsMenu, int client, int clanid)
 {
 	Call_StartForward(g_hCSOpened);
 	Call_PushCell(clanStatsMenu);
 	Call_PushCell(client);
+	Call_PushCell(clanid);
 	Call_Finish();
 }
 
@@ -95,12 +116,14 @@ void F_OnClanStatsOpened(Handle clanStatsMenu, int client)
  *
  * @param Handle playerStatsMenu - player stats menu
  * @param int client - who opened the menu
+ * @param int targetID - whose stats is opened
  */
-void F_OnPlayerStatsOpened(Handle playerStatsMenu, int client)
+void F_OnPlayerStatsOpened(Handle playerStatsMenu, int client, int targetID)
 {
 	Call_StartForward(g_hPSOpened);
 	Call_PushCell(playerStatsMenu);
 	Call_PushCell(client);
+	Call_PushCell(targetID);
 	Call_Finish();
 }
 
@@ -141,12 +164,14 @@ Action FT_OnClansLoaded(Handle timer)
  * Starts Clans_OnClanAdded forward
  *
  * @param int clanid - clan's id
+ * @param const char[] sName - clan's name
  * @param int createBy - client, who created the clan
  */
-void F_OnClanAdded(int clanid, int createBy)
+void F_OnClanAdded(int clanid, const char[] sName, int createBy)
 {
 	Call_StartForward(g_hClanAdded);
 	Call_PushCell(clanid);
+	Call_PushString(sName);
 	Call_PushCell(createBy);
 	Call_Finish();
 }
@@ -241,5 +266,35 @@ void F_OnClientLoaded(int iClient, int iClientID, int iClanid)
 	Call_PushCell(iClient);
 	Call_PushCell(iClientID);
 	Call_PushCell(iClanid);
+	Call_Finish();
+}
+
+/**
+ * Starts Clans_OnTopMenuOpened forward
+ *
+ * @param Handle topMenu - top menu handle
+ * @param int iClient - client's index
+ */
+void F_OnTopMenuOpened(Handle topMenu, int iClient)
+{
+	Call_StartForward(g_hOnTopOpened);
+	Call_PushCell(topMenu);
+	Call_PushCell(iClient);
+	Call_Finish();
+}
+
+/**
+ * Starts Clans_OnTopMenuSelected forward
+ *
+ * @param Handle topMenu - top menu handle
+ * @param int iClient - client's index
+ * @param int iOption - selected option
+ */
+void F_OnTopMenuSelected(Handle topMenu, int iClient, int iOption)
+{
+	Call_StartForward(g_hOnTopSelected);
+	Call_PushCell(topMenu);
+	Call_PushCell(iClient);
+	Call_PushCell(iOption);
 	Call_Finish();
 }

@@ -45,6 +45,8 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 	CreateNative("Clans_ShowClanMembers", Native_ShowClanMembers);
 	CreateNative("Clans_ShowClanList", Native_ShowClanList);
 	CreateNative("Clans_ResetClan", Native_ResetClan);
+	CreateNative("Clans_ResetAllClans", Native_ResetAllClans);
+	CreateNative("Clans_ShowTopMenu", Native_ShowTopMenu);
 	//Other
 	CreateNative("Clans_GetClanDatabase", Native_GetClanDatabase);
 	CreateNative("Clans_IsMySQLDatabase", Native_IsMySQLDatabase);
@@ -410,19 +412,38 @@ public int Native_ResetClan(Handle plugin, int iParams)
 {
 	int iClanid = GetNativeCell(1);
 	bool bResetPlayers = GetNativeCell(2);
-	ResetClan(iClanid, bResetPlayers);
+	bool bResetCoins = GetNativeCell(3);
+	ResetClan(iClanid, bResetPlayers, bResetCoins);
 	return 0;
 }
 
+public int Native_ResetAllClans(Handle plugin, int iParams)	//v1.87
+{
+	bool bResetPlayers = GetNativeCell(1);
+	bool bResetCoins = GetNativeCell(2);
+	ResetAllClans(bResetPlayers, bResetCoins);
+	return 0;
+}
+
+public int Native_ShowTopMenu(Handle plugin, int numParams)
+{
+	int client = GetNativeCell(1);
+	if(IsMBufferEmpty(client))
+		ThrowTopsMenuToClient(client);
+	else
+		ThrowLastMenu(client, true);
+	return 0;
+}
 //Other
 public any Native_GetClanDatabase(Handle plugin, int numParams)
 {
 	return CloneHandle(g_hClansDB, plugin);
 }
 
+//v1.88 always true!!!
 public any Native_IsMySQLDatabase(Handle plugin, int numParams)
 {
-	return mySQL;
+	return true;
 }
 
 public any Native_AreClansLoaded(Handle plugin, int numParams)
