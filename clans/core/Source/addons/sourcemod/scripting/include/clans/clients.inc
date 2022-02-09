@@ -213,3 +213,12 @@ native int Clans_GetClientTimeToCreateClan(int iClient);
  * @noreturn
  */
 native void Clans_ResetClient(int iClientID);
+
+/**
+ * Show top menu to client
+ *
+ * @param int iClient - client's index
+ *
+ * @noreturn
+ */
+native void Clans_ShowTopMenu(int iClient);

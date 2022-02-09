@@ -468,20 +468,20 @@
 	
 	"NoClans"
 	{
-		"en"	"{firebrick}[CSHOP] {lightgreen}There are no clans to show!"
-		"ru"	"{firebrick}[CSHOP] {lightgreen}Нет кланов для вывода!"
+		"en"	"{firebrick}[CLANS] {lightgreen}There are no clans to show!"
+		"ru"	"{firebrick}[CLANS] {lightgreen}Нет кланов для вывода!"
 	}
 	
 	"NoPlayers"
 	{
-		"en"	"{firebrick}[CSHOP] {lightgreen}There are no players to show!"
-		"ru"	"{firebrick}[CSHOP] {lightgreen}Нет игроков для вывода!"
+		"en"	"{firebrick}[CLANS] {lightgreen}There are no players to show!"
+		"ru"	"{firebrick}[CLANS] {lightgreen}Нет игроков для вывода!"
 	}
 	
 	"c_WrongRoleFlag"
 	{
-		"en"	"{firebrick}[CSHOP] {lightgreen}Wrong role flag inputted!"
-		"ru"	"{firebrick}[CSHOP] {lightgreen}Неверно задана роль!"
+		"en"	"{firebrick}[CLANS] {lightgreen}Wrong role flag inputted!"
+		"ru"	"{firebrick}[CLANS] {lightgreen}Неверно задана роль!"
 	}
 
 	"c_AdminSetCoins"

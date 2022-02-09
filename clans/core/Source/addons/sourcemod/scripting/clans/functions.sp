@@ -34,6 +34,14 @@ void GetClanName(int clanid, char[] buffer, int maxlength)
 {
 	if(clanid != -1)
 	{
+		for(int i = 1; i <= MaxClients; ++i)	//v1.87T
+		{
+			if(IsClientInGame(i) && g_iClientData[i][CLIENT_CLANID] == clanid)
+			{
+				FormatEx(buffer, maxlength, "%s", g_sClientData[i][CLIENT_CLANNAME]);
+				return;
+			}
+		}
 		SQL_LockDatabase(g_hClansDB);
 		char query[150];
 		FormatEx(query, sizeof(query), "SELECT `clan_name` FROM `clans_table` WHERE `clan_id` = '%d'", clanid);
@@ -225,12 +233,12 @@ int GetClanMembers(int clanid)
 	SQL_LockDatabase(g_hClansDB);
 	int members = 0;
 	char query[150];
-	FormatEx(query, sizeof(query), "SELECT 1 FROM `players_table` WHERE `player_clanid` = '%d'", clanid);
+	FormatEx(query, sizeof(query), "SELECT COUNT(*) FROM `players_table` WHERE `player_clanid` = '%d'", clanid);
 	DBResultSet rSet = SQL_Query(g_hClansDB, query);
 	SQL_UnlockDatabase(g_hClansDB);
 	if(rSet != null && rSet.FetchRow())
 	{
-		members = rSet.RowCount;
+		members = rSet.FetchInt(0);
 	}
 	delete rSet;
 	return members;
@@ -333,11 +341,11 @@ void CreateClan(int leader, char[] clanName, int createdBy = -1)
  *
  * @return true - success, false - failed
  */
-bool ResetClan(int clanid, bool bResetPlayers = false)
+bool ResetClan(int clanid, bool bResetPlayers = false, bool bResetCoins = false)
 {
 	if(bResetPlayers)
 	{
-		for(int i = 1; i <= MaxClients; ++i)	//vv1.86
+		for(int i = 1; i <= MaxClients; ++i)	//v1.86
 		{
 			if(IsClientInGame(i) && g_iClientData[i][CLIENT_CLANID] == clanid)
 			{
@@ -346,8 +354,27 @@ bool ResetClan(int clanid, bool bResetPlayers = false)
 			}
 		}
 	}
-	DB_ResetClan(clanid, bResetPlayers);
+	DB_ResetClan(clanid, bResetPlayers, bResetCoins);
 	return true;
+}
+
+/**
+ * Reset all clans
+ */
+void ResetAllClans(bool bResetPlayers = false, bool bResetCoins = false)
+{
+	if(bResetPlayers)
+	{
+		for(int i = 1; i <= MaxClients; ++i)	//v1.86
+		{
+			if(IsClientInGame(i) && g_iClientData[i][CLIENT_CLANID] != CLAN_INVALID_CLAN)
+			{
+				g_iClientData[i][CLIENT_KILLS] = g_iClientData[i][CLIENT_DEATHS] = 0;
+				g_iClientDiffData[i][CD_DIFF_KILLS] = g_iClientDiffData[i][CD_DIFF_DEATHS] = 0;
+			}
+		}
+	}
+	DB_ResetAllClans(bResetPlayers, bResetCoins);
 }
 
 /*
@@ -357,8 +384,8 @@ bool ResetClan(int clanid, bool bResetPlayers = false)
  */
 void DeleteClan(int clanid)
 {
-	char clanName[MAX_CLAN_NAME];
-	GetClanName(clanid, clanName, sizeof(clanName));
+	/*char clanName[MAX_CLAN_NAME];
+	GetClanName(clanid, clanName, sizeof(clanName));*/
 	DB_DeleteClan(clanid);
 	
 	for(int i = 1; i <= MaxClients; i++)
@@ -482,7 +509,10 @@ int GetClientIDinDBbySteam(char[] auth)
 	{
 		if(IsClientInGame(i))
 		{
-			GetClientAuthId(i, AuthId_Steam2, playerAuth, sizeof(playerAuth));
+			if(USEAUTH2)
+				GetClientAuthId(i, AuthId_Steam2, playerAuth, sizeof(playerAuth));
+			else
+				GetClientAuthId(i, AuthId_Steam3, playerAuth, sizeof(playerAuth));
 			if(!strcmp(playerAuth, auth))
 				return playerID[i];
 		}
@@ -512,7 +542,7 @@ void GetClientNameByID(int clientID, char[] buffer, int maxlength)
 {
 	for(int i = 1; i <= MaxClients; i++)
 	{
-		if(playerID[i] == clientID)
+		if(playerID[i] == clientID && IsClientInGame(i))
 		{
 			GetClientName(i, buffer, maxlength);
 			return;
@@ -560,7 +590,7 @@ bool IsClientInClanByID(int clientID)
 	for(int i = 1; i <= MaxClients; i++)
 	{
 		if(playerID[i] == clientID)
-			return IsClientInClan(i);
+			return true;	//v1.87T
 	}
 	SQL_LockDatabase(g_hClansDB);
 	char query[150];
@@ -624,7 +654,8 @@ bool AreClientsInDifferentClans(int client, int other)
 {
 	if(client < 1 || client > MaxClients || !IsClientInGame(client) || other < 1 || other > MaxClients || !IsClientInGame(other))
 		return true;
-	return strcmp(g_sClientData[client][CLIENT_CLANNAME], g_sClientData[other][CLIENT_CLANNAME]) != 0;
+	//return strcmp(g_sClientData[client][CLIENT_CLANNAME], g_sClientData[other][CLIENT_CLANNAME]) != 0;
+	return g_iClientData[client][CLIENT_CLANID] != g_iClientData[other][CLIENT_CLANID];	//v1.87T
 }
 
 /**
@@ -632,9 +663,9 @@ bool AreClientsInDifferentClans(int client, int other)
  * Проверять, что игрок состоит в этом клане!
  *
  * @param int leaderid - айди нового лидера в базе данных
- * @param int clanid - айди клана
+ * @param int clanid - айди клана (removed since 1.87T)
  */
-void SetClanLeaderByID(int leaderid, int clanid)
+void SetClanLeaderByID(int leaderid)//, int clanid)
 {
 	SetClientRoleByID(leaderid, CLIENT_LEADER);
 }
@@ -750,7 +781,7 @@ int GetClientKillsInClanByID(int clientID, bool bFromDB = false)
 		for(int i = 1; i <= MaxClients; ++i)
 		{
 			if(playerID[i] == clientID)
-				return g_iClientData[i][CLIENT_KILLS]+g_iClientDiffData[i][CD_DIFF_KILLS] >= 0 ? g_iClientData[i][CLIENT_KILLS]+g_iClientDiffData[i][CD_DIFF_KILLS] : 0;
+				return g_iClientData[i][CLIENT_KILLS]+g_iClientDiffData[i][CD_DIFF_KILLS] > 0 ? g_iClientData[i][CLIENT_KILLS]+g_iClientDiffData[i][CD_DIFF_KILLS] : 0;
 		}
 	}
 	SQL_LockDatabase(g_hClansDB);
@@ -985,7 +1016,7 @@ void GetClanClientNameByID(int clientID, char[] buffer, int maxlength)
 {
 	for(int i = 1; i <= MaxClients; i++)
 	{
-		if(IsClientInGame(i) && playerID[i] == clientID)
+		if(playerID[i] == clientID && IsClientInGame(i))
 		{
 			GetClientName(i, buffer, maxlength);
 			return;
@@ -1017,7 +1048,10 @@ void CreateClient(int client, int clanid, int role)
 	char name[MAX_NAME_LENGTH+1], auth[33];
 	ClearClientData(client);
 	GetClientName(client, name, sizeof(name));
-	GetClientAuthId(client, AuthId_Steam2, auth, sizeof(auth));
+	if(USEAUTH2)
+		GetClientAuthId(client, AuthId_Steam2, auth, sizeof(auth));
+	else
+		GetClientAuthId(client, AuthId_Steam3, auth, sizeof(auth));
 	DB_CreateClientByData(name, auth, clanid, role, client);
 	DB_LoadClient(client);
 }
@@ -1055,30 +1089,45 @@ bool DeleteClientByID(int clientID)
 {
 	if(clientID < 0)
 		return false;
-	int clanid = GetClientClanByID(clientID);
-	int clanMembers = GetClanMembers(clanid);	
-	if(clanMembers == 1)	//Если в клане нет никого еще, кроме того, кого удаляют ( лидер кому-то не угодил или сам ливнуть решил :( )
-	{
-		DeleteClan(clanid);
-	}
-	else	//Если в клане все же есть еще люди
-	{
-		int iClient = -1;
-		for(int i = 1; i <= MaxClients; i++)
-		{
-			if(playerID[i] == clientID)
-			{
-				ClearClientData(i);
-				iClient = i;
-			}
-		}
-		DB_SavePlayer(iClient);
-		DB_PreDeleteClient(clientID);
-		F_OnClientDeleted(iClient, clientID, clanid);
-	}
-	if(!g_bCSS34)
-		UpdatePlayersClanTag();
+	char query[256];
+	FormatEx(query, sizeof(query), "SELECT COUNT(*), player_clanid FROM players_table WHERE player_clanid = (SELECT player_clanid FROM players_table WHERE player_id = %d)", clientID);
+	g_hClansDB.Query(DBF_DeleteClientByID, query, clientID);	//v1.87T
 	return true;
+}
+
+//v1.87T
+void DBF_DeleteClientByID(Database db, DBResultSet rSet, const char[] sError, int iClientID)
+{
+	if(sError[0])
+	{
+		LogError("[CLANS] Failed to get members in the clan (DeleteClientByID): %s", sError);
+	}
+	else if(rSet.FetchRow())
+	{
+		int clanid = rSet.FetchInt(1);
+		int clanMembers = rSet.FetchInt(0);
+		if(clanMembers == 1)	//Если в клане нет никого еще, кроме того, кого удаляют ( лидер кому-то не угодил или сам ливнуть решил :( )
+		{
+			DeleteClan(clanid);
+		}
+		else	//Если в клане все же есть еще люди
+		{
+			int iClient = -1;
+			for(int i = 1; i <= MaxClients; i++)
+			{
+				if(playerID[i] == iClientID)
+				{
+					ClearClientData(i);
+					iClient = i;
+				}
+			}
+			DB_SavePlayer(iClient);
+			DB_PreDeleteClient(iClientID);
+			F_OnClientDeleted(iClient, iClientID, clanid);
+		}
+		if(!g_bCSS34)
+			UpdatePlayersClanTag();
+	}
 }
 
 /**
@@ -1114,7 +1163,8 @@ bool CanPlayerDo(int client, int permission)
 {
 	if(client < 0 || client > MaxClients)
 		return false;
-	int role = GetClientRoleByID(ClanClient);
+	//int role = GetClientRoleByID(ClanClient);
+	int role = g_iClientData[client][CLIENT_ROLE];	//v1.87T
 	switch(permission)
 	{
 		case 1:	//invite
@@ -1177,7 +1227,8 @@ bool CanPlayerDoAnything(int client)
 	if(client < 1 || client > MaxClients || !IsClientInGame(client))
 		return false;
 	int check;
-	int role = GetClientRoleByID(ClanClient);
+	//int role = GetClientRoleByID(ClanClient);
+	int role = g_iClientData[client][CLIENT_ROLE];	//v1.87T
 	check = g_iRInvitePerm & role;
 	check |= g_iRGiveCoinsToClan & role;
 	check |= g_iRExpandClan & role;

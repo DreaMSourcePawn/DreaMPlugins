@@ -9,10 +9,10 @@
 
 #pragma newdecls required
 
+#define PLUGIN_VERSION "1.873"
 #define ClanClient playerID[client]	//Айди игрока в базе данных
 #define BUFF_SIZE 600
 #define LOG_SIZE 512
-#define PLUGIN_VERSION "1.86"
 //================================================
 //Flag for CSS v34
 bool g_bCSS34 = false;
@@ -96,7 +96,7 @@ bool writeToClanChat[MAXPLAYERS+1];	//Флаг, что игрок будет п�
 int admin_SelectMode[MAXPLAYERS+1][2];
 
 //===================== CVARS =====================//
-Handle 	g_hExpandingCost, 		//Price of expansion
+ConVar 	g_hExpandingCost, 		//Price of expansion
 		g_hMaxClanMembers, 		//Maximum number of players in any clan
 		g_hExpandValue, 		//Number of slots clan gets buying the expansion
 		g_hStartSlotsInClan, 	//Start number of slots for clans
@@ -109,7 +109,8 @@ Handle 	g_hExpandingCost, 		//Price of expansion
 		g_hLeaderLeave,			//Flag: can leader leave his/her clan
 		g_hClanCreationCD,		//Time in minutes when player can create a new clan again (1.7)
 		g_hRenameClanPrice,		//Clan rename price (1.7)
-		g_hClanChatFilter;		//Clan chat filter (1.8): 1 (d) - dead can't write to alive, 2 (t) - people from different teams can't see each other's messages
+		g_hClanChatFilter,		//Clan chat filter (1.8): 1 (d) - dead can't write to alive, 2 (t) - people from different teams can't see each other's messages
+		g_cvSteamAuth2;			//Flag should steam auth2 be used instead of auth3
 		
 int 	g_iExpandingCost, 		//Price of expansion
 		g_iMaxClanMembers, 		//Maximum number of players in any clan
@@ -127,24 +128,8 @@ bool	g_bLeaderChange,		//Flag: can leader set a new leader
 		g_bCoinsTransfer,		//Flag: can clan transfer coins to other clan
 		g_bLeaderLeave;			//Flag: can leader leave his/her clan
 		
+#define USEAUTH2 g_cvSteamAuth2.BoolValue
 //===================== CVARS END =====================//
-		
-//Forwards below
-Handle	g_hACMOpened, 		//AdminClanMenuOpened
-		g_hACMSelected,		//AdminClanMenuSelected
-		g_hCMOpened, 		//ClanMenuOpened
-		g_hCMSelected,		//ClanMenuSelected
-		g_hCSOpened, 		//ClanStatsOpened
-		g_hPSOpened, 		//PlayerStatsOpened
-		g_hClansLoaded,		//ClansLoaded
-		g_hClanAdded,		//ClansAdded
-		g_hClanDeleted,		//ClansDeleted
-		g_hClientAdded,		//ClientAdded
-		g_hClientDeleted,	//ClientDeleted
-		g_hClanSelectedInList,	//Clans_OnClanSelectedInList	1.8v
-		g_hClanMemberSelectedInList,	//Clans_OnClanMemberSelectedInList	1.8v NOT DONE
-		g_hOnClanCoinsGive,		//Clans_OnClanCoinsGive	1.8v
-		g_hOnClanClientLoaded;	//Clans_OnClientLoaded 1.83v
 
 //=====================Permissions=====================//
 Handle	g_hRInvitePerm,				//Invite players to clan
@@ -291,9 +276,11 @@ Action Death(Handle event, const char[] name, bool db)
 		KillFunc(attacker, victim, 1);
 		if(CheckForLog(LOG_KILLS) && (victimInClanDB != -1 || attackerInClanDB != -1))
 		{
+			int attackerClanid = g_iClientData[attacker][CLIENT_CLANID];
+			int victimClanid = g_iClientData[victim][CLIENT_CLANID];
 			char log_buff[LOG_SIZE];
 			FormatEx(log_buff, sizeof(log_buff), "%T", "L_Kill", LANG_SERVER);
-			DB_LogAction(attacker, false, GetClientClanByID(attackerInClanDB), log_buff, victim, false, GetClientClanByID(victimInClanDB), LOG_KILLS);
+			DB_LogAction(attacker, false, attackerClanid, log_buff, victim, false, victimClanid, LOG_KILLS);
 		}
 	}
 	return Plugin_Continue;
@@ -731,10 +718,9 @@ Action SayHook(int client, const char[] command, int args)
 		{
 			char str_coins[30], 
 				 print_buff[BUFF_SIZE],
-				 clanName[MAX_CLAN_NAME+1],
-				 targetClanName[MAX_CLAN_NAME+1];
+				 clanName[MAX_CLAN_NAME+1];
 			int coins = 0,
-				clientClan = GetClientClanByID(ClanClient);
+				clientClan = g_iClientData[client][CLIENT_CLANID];
 			GetCmdArg(1, str_coins, sizeof(str_coins));
 			TrimString(str_coins);
 			if(!strcmp(str_coins, "отмена") || !strcmp(str_coins, "cancel"))
@@ -757,7 +743,7 @@ Action SayHook(int client, const char[] command, int args)
 			{
 				if(CheckForLog(LOG_CLANACTION))
 				{
-					char log_buff[LOG_SIZE];
+					char log_buff[LOG_SIZE], targetClanName[MAX_CLAN_NAME+1];
 					GetClanName(CLAN_STARGET, targetClanName, sizeof(targetClanName));
 					FormatEx(log_buff, sizeof(log_buff), "%T", "L_TransferCoins", LANG_SERVER, coins, targetClanName);
 					DB_LogAction(client, false, GetClientClanByID(ClanClient), log_buff, -1, true, CLAN_STARGET, LOG_CLANACTION);
@@ -765,10 +751,10 @@ Action SayHook(int client, const char[] command, int args)
 				int targetClanCoins = GetClanCoins(CLAN_STARGET);
 				SetClanCoins(clientClan, clientClanCoins - coins);
 				SetClanCoins(CLAN_STARGET, targetClanCoins + coins);
-				GetClanName(clientClan, clanName, sizeof(clanName));
+				FormatEx(clanName, sizeof(clanName), "%s", g_sClientData[client][CLIENT_CLANNAME]);
 				for(int i = 1; i <= MaxClients; i++)
 				{
-					if(IsClientInGame(i) && !strcmp(g_sClientData[i][CLIENT_CLANNAME], targetClanName))
+					if(IsClientInGame(i) && g_iClientData[i][CLIENT_CLANID] == CLAN_STARGET)
 					{
 						FormatEx(print_buff, sizeof(print_buff), "%T", "c_TranferFrom", i, clanName, coins);
 						CPrintToChat(i, print_buff);
@@ -780,6 +766,15 @@ Action SayHook(int client, const char[] command, int args)
 			CLAN_STYPE = -1;
 			CLAN_STARGET = -1;
 			return Plugin_Handled;
+		}
+		if(ClanClient != -1)
+		{
+			char sBuff[400];
+			GetCmdArgString(sBuff, sizeof(sBuff));
+			if(StrContains(sBuff, "!cct ") != -1)
+			{
+				return Plugin_Handled;
+			}
 		}
 	}
 	return Plugin_Continue;

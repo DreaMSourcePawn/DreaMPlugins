@@ -41,10 +41,7 @@ int Clan_InvitePlayerSelectMenu(Handle inviteSelectMenu, MenuAction action, int 
 	if (action == MenuAction_Select)
 	{
 		char 	print_buff[BUFF_SIZE], 		//Вывод в чат
-				userid[15],					//Айди юзера
-				clanName[MAX_CLAN_NAME+1];	//Имя клана
-		userid[0] = '\0';
-		GetClanName(GetClientClanByID(ClanClient), clanName, sizeof(clanName));
+				userid[15];					//Айди юзера
 		GetMenuItem(inviteSelectMenu, option, userid, 15); 
 		int target = GetClientOfUserId(StringToInt(userid)); 
 		invitedBy[target][0] = client;
@@ -53,7 +50,7 @@ int Clan_InvitePlayerSelectMenu(Handle inviteSelectMenu, MenuAction action, int 
 		if(checkForMenus == MenuSource_None)	//target isn't viewing any menu
 		{
 			Handle inviteMenu = CreateMenu(Clans_InviteAcceptMenu);
-			FormatEx(print_buff, sizeof(print_buff), "%T", "m_InvitedToClan", target, clanName);
+			FormatEx(print_buff, sizeof(print_buff), "%T", "m_InvitedToClan", target, g_sClientData[client][CLIENT_CLANNAME]);
 			SetMenuTitle(inviteMenu, print_buff);
 			FormatEx(print_buff, sizeof(print_buff), "%T", "m_Yes", target);
 			AddMenuItem(inviteMenu, "Yes", print_buff);
@@ -62,7 +59,7 @@ int Clan_InvitePlayerSelectMenu(Handle inviteSelectMenu, MenuAction action, int 
 			SetMenuExitButton(inviteMenu, true);
 			DisplayMenu(inviteMenu, target, 0);
 		}
-		FormatEx(print_buff, sizeof(print_buff), "%T", "c_YouAreInvited", client, clanName);
+		FormatEx(print_buff, sizeof(print_buff), "%T", "c_YouAreInvited", client, g_sClientData[client][CLIENT_CLANNAME]);
 		CPrintToChat(target, print_buff);
 	}
 	else if (action == MenuAction_End && action == MenuAction_Cancel)
@@ -101,8 +98,7 @@ int Clan_PlayerClanSelectMenu(Handle playerClanMenu, MenuAction action, int clie
 		else if(!strcmp(selectedItem, "Members"))
 		{
 			CLAN_STYPE = 0;
-			if(!ThrowClanMembersToClient(client, GetClientClanByID(ClanClient), 1))
-				ThrowClanMenuToClient(client);
+			ThrowClanMembersToClient(client, g_iClientData[client][CLIENT_CLANID], 1);	//v1.87
 		}
 		else if(!strcmp(selectedItem, "TopClans"))
 		{
@@ -164,10 +160,6 @@ int Clan_PlayerClanSelectMenu(Handle playerClanMenu, MenuAction action, int clie
 int Clan_PlayerStatsMenu(Handle playerStatsMenu, MenuAction action, int client, int option)
 {
 	CloseHandle(playerStatsMenu);
-	/*if(ClanClient == -1)
-		ThrowTopsMenuToClient(client);
-	else
-		ThrowClanMenuToClient(client);*/
 	ThrowLastMenu(client);	//v1.86
 }
 
@@ -179,7 +171,9 @@ int Clan_ClanStatsMenu(Handle clanStatsMenu, MenuAction action, int client, int 
 	if(action == MenuAction_Select)
 	{
 		int clanid = CLAN_STARGET;
-		char print_buff[BUFF_SIZE];
+		int iType = CLAN_STARGET >> 30;
+		if(iType == 1)
+			clanid ^= 1 << 30;
 		if(option == 1)
 		{
 			CLAN_STYPE = 0;
@@ -187,37 +181,22 @@ int Clan_ClanStatsMenu(Handle clanStatsMenu, MenuAction action, int client, int 
 		}
 		else if(option == 2)	//Join or Close
 		{
-			if(GetClanType(clanid) == 1 && ClanClient == -1)
+			if(iType == 1 && ClanClient == -1)
 			{
-				if(GetClanMembers(clanid) >= GetClanMaxMembers(clanid))
-				{
-					FormatEx(print_buff, sizeof(print_buff), "%T", "c_MaxMembersInClan", client)
-					CPrintToChat(client, print_buff);
-					CLAN_STYPE = -1;
-					CLAN_STARGET = -1;
-					//ThrowClanStatsToClient(client, clanid);
-					ThrowLastMenu(client, true);	//v1.86
-				}
-				else
-				{
-					if(CheckForLog(LOG_CLIENTACTION))
-					{
-						char 	log_buff[LOG_SIZE],
-								clanName[MAX_CLAN_NAME+1];
-						GetClanName(clanid, clanName, sizeof(clanName));
-						FormatEx(log_buff, sizeof(log_buff), "%T", "L_CreatePlayer", LANG_SERVER, clanName);
-						DB_LogAction(client, false, GetClientClanByID(ClanClient), log_buff, -1, true, clanid, LOG_CLIENTACTION);
-					}
-					SetOnlineClientClan(client, clanid, 0);
-					FormatEx(print_buff, sizeof(print_buff), "%T", "c_JoinSuccess", client)
-					CPrintToChat(client, print_buff);
-					CLAN_STYPE = -1;
-					CLAN_STARGET = -1;
-				}
+				char query[256];
+				FormatEx(query, sizeof(query), "SELECT \
+													clan_id, \
+													(SELECT COUNT(*) FROM players_table WHERE player_clanid = %d), \
+													maxmembers, \
+													clan_name \
+												FROM \
+													clans_table \
+												WHERE \
+													clan_id = %d", clanid, clanid);
+				g_hClansDB.Query(DBM_ClanStatsMenuSelected, query, client);	//v1.87
 			}
 			else
 			{
-				//ThrowClanMenuToClient(client);
 				ThrowLastMenu(client);	//v1.86
 				CLAN_STYPE = -1;
 				CLAN_STARGET = -1;
@@ -227,14 +206,12 @@ int Clan_ClanStatsMenu(Handle clanStatsMenu, MenuAction action, int client, int 
 		{
 			CLAN_STYPE = -1;
 			CLAN_STARGET = -1;
-			//ThrowTopsMenuToClient(client);
 			ThrowLastMenu(client);	//v1.86
 		}
 	}
 	else
 	{
 		CloseHandle(clanStatsMenu);
-		//ThrowClanMenuToClient(client);
 		ThrowLastMenu(client);	//v1.86
 	}
 }
@@ -250,7 +227,8 @@ int Clan_LeaveClanSelectMenu(Handle leaveClanMenu, MenuAction action, int client
 		{
 			char 	log_buff[LOG_SIZE],
 					clanName[MAX_CLAN_NAME+1];
-			GetClanName(GetClientClanByID(ClanClient), clanName, sizeof(clanName));
+			//GetClanName(GetClientClanByID(ClanClient), clanName, sizeof(clanName));
+			FormatEx(clanName, sizeof(clanName), "%s", g_sClientData[client][CLIENT_CLANNAME]);
 			FormatEx(log_buff, sizeof(log_buff), "%T", "L_LeaveClan", LANG_SERVER, clanName);
 			DB_LogAction(client, false, GetClientClanByID(ClanClient), log_buff, -1, true, GetClientClanByID(ClanClient), LOG_CLIENTACTION);
 		}
@@ -335,14 +313,6 @@ int Clan_ClanMembersSelectMenu(Handle clanMembersMenu, MenuAction action, int cl
 	}
 	else if(option == MenuCancel_ExitBack && action == MenuAction_Cancel)
 	{
-		/*if(ADMIN_STYPE == 10 || ADMIN_STYPE == 6)	//Смена роли/лидера админом
-			ThrowClansToClient(client, true);
-		else if(CLAN_STYPE == 4)	//Смена роли игроком из клана
-			ThrowClanControlMenu(client);
-		else if(CLAN_STARGET != -1 && CLAN_STYPE != -1)
-			ThrowClanStatsToClient(client, CLAN_STARGET);
-		else
-			ThrowClanMenuToClient(client);*/
 		ThrowLastMenu(client);	//v1.86
 	}
 }
@@ -391,7 +361,6 @@ int Clan_ClanControlSelectMenu(Handle clanControlMenu, MenuAction action, int cl
 			{
 				FormatEx(print_buff, sizeof(print_buff), "%T", "c_MaxMembersInClan", client);
 				CPrintToChat(client, print_buff);
-				//ThrowClanControlMenu(client);
 				ThrowLastMenu(client, true);	//v1.86
 			}
 		}
@@ -451,7 +420,6 @@ int Clan_ClanControlSelectMenu(Handle clanControlMenu, MenuAction action, int cl
 	}
 	else if(option == MenuCancel_ExitBack && action == MenuAction_Cancel)
 	{
-		//ThrowClanMenuToClient(client);
 		ThrowLastMenu(client);	//v1.86
 	}
 }
@@ -491,7 +459,6 @@ int Clan_ExpandClanSelectPanel(Handle expandClanPanel, MenuAction action, int cl
 				SetClanMaxMembers(clientClan, clanMaxMembers + g_iExpandValue);
 				FormatEx(print_buff, sizeof(print_buff), "%T", "c_ExpandSuccess", client);
 				CPrintToChat(client, print_buff);
-				//ThrowClanControlMenu(client);
 				ThrowLastMenu(client);	//v1.86
 			}
 		}
@@ -535,10 +502,12 @@ int Clan_KickSelectMenu(Handle kickMenu, MenuAction action, int client, int opti
 			 targetName[MAX_NAME_LENGTH+1];			//Имя цели для кика
 			 
 		int targetID = CLAN_STARGET;	//Айди выбранного игрока в базе данных
-		int clanid = GetClientClanByID(ClanClient);			//Клан, в котором кикают
+		//int clanid = GetClientClanByID(ClanClient);			//Клан, в котором кикают
+		int clanid = g_iClientData[client][CLIENT_CLANID];		//v1.87
 		GetClientNameByID(targetID, targetName, sizeof(targetName));
 		GetClientName(client, clientName, sizeof(clientName));
-		GetClanName(clanid, clanName, sizeof(clanName));
+		//GetClanName(clanid, clanName, sizeof(clanName));
+		FormatEx(clanName, sizeof(clanName), "%s", g_sClientData[client][CLIENT_CLANNAME]);
 		if(targetID != -1)
 		{
 			FormatEx(print_buff, sizeof(print_buff), "%T", "c_PlayerDelete", client, targetName);
@@ -604,7 +573,7 @@ int Clan_LeaderSelectMenu(Handle kickMenu, MenuAction action, int client, int op
 					FormatEx(log_buff, sizeof(log_buff), "%T", "L_SetLeader", LANG_SERVER, targetName, targetClanName);
 					DB_LogAction(client, false, GetClientClanByID(ClanClient), log_buff, targetID, true, clanid, LOG_CHANGEROLE);
 				}
-				SetClanLeaderByID(targetID, clanid);
+				SetClanLeaderByID(targetID);
 				FormatEx(print_buff, sizeof(print_buff), "%T", "c_LeaderSuccess", client);
 				CPrintToChat(client, print_buff);
 				for(int i = 1; i <= MaxClients; i++)
@@ -626,7 +595,7 @@ int Clan_LeaderSelectMenu(Handle kickMenu, MenuAction action, int client, int op
 					FormatEx(log_buff, sizeof(log_buff), "%T", "L_SetLeader", LANG_SERVER, targetName, targetClanName);
 					DB_LogAction(client, false, GetClientClanByID(ClanClient), log_buff, targetID, true, clanid, LOG_CHANGEROLE);
 				}
-				SetClanLeaderByID(targetID, clanid);
+				SetClanLeaderByID(targetID);
 				FormatEx(print_buff, sizeof(print_buff), "%T", "c_LeaderSuccess", client);
 				CPrintToChat(client, print_buff);
 				for(int i = 1; i <= MaxClients; i++)
@@ -659,12 +628,14 @@ int Clan_TopsSelectMenu(Handle topsMenu, MenuAction action, int client, int opti
 	if(action == MenuAction_Select)
 	{
 		char buffer[60];
-		int iOptionToFunc = 0;
+		int iOptionToFunc = -1;
 		GetMenuItem(topsMenu, option, buffer, sizeof(buffer));
 		if(buffer[0] == 'K' && buffer[2] == 'l') // Kills
 		{
 			if(buffer[5] != 'D')	// KillsDesc
 				iOptionToFunc = 1;
+			else
+				iOptionToFunc = 0;
 		}
 		else if(buffer[0] == 'D' && buffer[2] == 'a') // Deaths
 		{
@@ -694,7 +665,9 @@ int Clan_TopsSelectMenu(Handle topsMenu, MenuAction action, int client, int opti
 			else
 				iOptionToFunc = 9;
 		}
-		ThrowTopClanInCategoryToClient(client, iOptionToFunc);
+		F_OnTopMenuSelected(topsMenu, client, option);
+		if(iOptionToFunc != -1)
+			ThrowTopClanInCategoryToClient(client, iOptionToFunc);
 	}
 	else if (action == MenuAction_End)
 	{
@@ -726,7 +699,6 @@ int Clan_TopClansSelectMenu(Handle topMenu, MenuAction action, int client, int o
 	}
 	else if(option == MenuCancel_ExitBack && action == MenuAction_Cancel)
 	{
-		//ThrowTopsMenuToClient(client);
 		ThrowLastMenu(client);	//v1.86
 	}
 }
@@ -832,7 +804,6 @@ int Clan_AdminClansSelectMenu(Handle adminClansMenu, MenuAction action, int clie
 	}
 	else if(option == MenuCancel_ExitBack && action == MenuAction_Cancel)
 	{
-		//ThrowTopsMenuToClient(client);
 		ThrowLastMenu(client);	//v1.86
 	}
 }
@@ -849,9 +820,9 @@ int Clan_ClansSelectMenu(Handle clansMenu, MenuAction action, int client, int op
 			 clanName[MAX_CLAN_NAME+1];
 		int style, 
 			clanid;
-		GetMenuItem(clansMenu, option, str_clanid, sizeof(str_clanid), style, "", 0);
+		GetMenuItem(clansMenu, option, str_clanid, sizeof(str_clanid), style, clanName, sizeof(clanName));
 		clanid = StringToInt(str_clanid);
-		GetClanName(clanid, clanName, sizeof(clanName));	//убрать получение имени через функцию, сделать через GetMenuItem
+		//GetClanName(clanid, clanName, sizeof(clanName));	//убрать получение имени через функцию, сделать через GetMenuItem v1.87
 		if(ADMIN_STYPE == 0)	//set coins
 		{
 			ADMIN_STARGET = clanid;
@@ -919,10 +890,6 @@ int Clan_ClansSelectMenu(Handle clansMenu, MenuAction action, int client, int op
 	}
 	else if(option == MenuCancel_ExitBack && action == MenuAction_Cancel)
 	{
-		/*if(ADMIN_STYPE != -1)
-			ThrowAdminMenu(client);
-		else
-			ThrowClanControlMenu(client);*/
 		ThrowLastMenu(client);	//v1.86
 		ADMIN_STYPE = -1;
 		CLAN_STYPE = -1;
@@ -970,9 +937,9 @@ int Clan_ClanClientsSelectMenu(Handle clanClientsMenu, MenuAction action, int cl
 /**
  * Calls when player open help menu
  */
-int Clan_HelpMenu(Handle helpMenu, MenuAction action, int client, int option)
+int Clan_HelpMenu(Handle HelpPanel, MenuAction action, int client, int option)
 {
-	CloseHandle(helpMenu);
+	CloseHandle(HelpPanel);
 }
 
 /**
@@ -993,10 +960,6 @@ int Clan_LeaderOfNewClanSelectMenu(Handle newClanLeaderSelectMenu, MenuAction ac
 	{
 		CloseHandle(newClanLeaderSelectMenu);
 	}
-	/*else if(action == MenuAction_Cancel)
-	{
-		ADMIN_STYPE = -1;
-	}*/
 	else if(option == MenuCancel_ExitBack && action == MenuAction_Cancel)
 	{
 		ADMIN_STYPE = -1;
@@ -1062,7 +1025,6 @@ int Clan_SetTypeSelectMenu(Handle setTypeMenu, MenuAction action, int client, in
 			 clanName[MAX_CLAN_NAME+1];
 		int clanid,
 			clanType;
-			//clientRole = -1;	//Если не админ, то проверяем, чтобы можно было выбросить меню управления кланом
 
 		GetClientName(client, clientName, sizeof(clientName));
 		if(ADMIN_STYPE == 9)
@@ -1074,7 +1036,6 @@ int Clan_SetTypeSelectMenu(Handle setTypeMenu, MenuAction action, int client, in
 		{
 			clanid = GetClientClanByID(ClanClient, true);
 			FormatEx(clanName, sizeof(clanName), "%s", g_sClientData[client][CLIENT_CLANNAME]);
-			//clientRole = GetClientRoleByID(client);
 		}
 		clanType = GetClanType(clanid);
 		if(option == 0)			//Player selects closed clan
@@ -1125,14 +1086,6 @@ int Clan_SetTypeSelectMenu(Handle setTypeMenu, MenuAction action, int client, in
 				}
 			}
 		}
-		/*if(ADMIN_STYPE == 9)
-			ThrowClansToClient(client, true);
-		/else if(CanRoleDo(clientRole, PERM_TYPE))
-			ThrowClanControlMenu(client);
-		else
-			ThrowClanMenuToClient(client);/
-		else
-			ThrowClanControlMenu(client);*/
 		ThrowLastMenu(client);	//v1.86
 	}
 	else if(action == MenuAction_End)
@@ -1141,10 +1094,6 @@ int Clan_SetTypeSelectMenu(Handle setTypeMenu, MenuAction action, int client, in
 	}
 	else if(option == MenuCancel_ExitBack && action == MenuAction_Cancel)
 	{
-		/*if(ADMIN_STYPE == 9)
-			ThrowClansToClient(client, true);
-		else
-			ThrowClanControlMenu(client);*/
 		ThrowLastMenu(client);	//v1.86
 	}
 }
@@ -1212,14 +1161,6 @@ int Clan_ChangeRoleSelectMenu(Handle changeRoleMenu, MenuAction action, int clie
 				}
 			}
 		}
-		/*if(ADMIN_STYPE == 10)
-		{
-			ThrowClansToClient(client, true);
-		}
-		else
-		{
-			ThrowClanControlMenu(client);
-		}*/
 		ThrowLastMenu(client);	//v1.86
 	}
 	else if(action == MenuAction_End)
@@ -1228,19 +1169,6 @@ int Clan_ChangeRoleSelectMenu(Handle changeRoleMenu, MenuAction action, int clie
 	}
 	else if(option == MenuCancel_ExitBack && action == MenuAction_Cancel)
 	{
-		/*int clanid, flags;
-		if(ADMIN_STYPE == 10)
-		{
-			clanid = GetClientClanByID(ADMIN_STARGET);
-			flags = 1;
-		}
-		else
-		{
-			clanid = GetClientClanByID(CLAN_STARGET);
-			flags = 2;
-		}
-		if(!ThrowClanMembersToClient(client, clanid, flags))
-			ThrowClanControlMenu(client);*/
 		ThrowLastMenu(client);	//v1.86
 	}
 }
@@ -1252,20 +1180,10 @@ int Clan_RenameClanSelectMenu(Handle renameClanMenu, MenuAction action, int clie
 {
 	if(action == MenuAction_Select)
 	{
-		char print_buff[BUFF_SIZE];
-		int clanid = GetClientClanByID(ClanClient);
-		int clanCoins = GetClanCoins(clanid);
-		if(clanCoins - g_iRenameClanPrice < 0)
-		{
-			FormatEx(print_buff, sizeof(print_buff), "%T", "c_NotEnoughCoins", client);
-			CPrintToChat(client, print_buff);
-		}
-		else
-		{
-			renameClan[client] = true;
-			FormatEx(print_buff, sizeof(print_buff), "%T", "c_RenameClan", client);
-			CPrintToChat(client, print_buff);
-		}
+		int clanid = g_iClientData[client][CLIENT_CLANID];
+		char query[128];
+		FormatEx(query, sizeof(query), "SELECT clan_coins FROM clans_table WHERE clan_id = %d", clanid);
+		g_hClansDB.Query(DBM_RenameClanCallback, query, client);
 	}
 	else if(action == MenuAction_End)
 	{
@@ -1273,8 +1191,31 @@ int Clan_RenameClanSelectMenu(Handle renameClanMenu, MenuAction action, int clie
 	}
 	else if(action == MenuAction_Cancel)
 	{
-		//ThrowClanControlMenu(client);
 		ThrowLastMenu(client);	//v1.86
+	}
+}
+
+void DBM_RenameClanCallback(Database db, DBResultSet rSet, const char[] sError, int iClient)
+{
+	if(sError[0])
+	{
+		LogError("[CLANS] Failed to get clan coins: %s", sError);
+	}
+	else if(rSet.FetchRow())
+	{
+		char print_buff[BUFF_SIZE];
+		int iClanCoins = rSet.FetchInt(0);
+		if(iClanCoins - g_iRenameClanPrice < 0)
+		{
+			FormatEx(print_buff, sizeof(print_buff), "%T", "c_NotEnoughCoins", iClient);
+			CPrintToChat(iClient, print_buff);
+		}
+		else
+		{
+			renameClan[iClient] = true;
+			FormatEx(print_buff, sizeof(print_buff), "%T", "c_RenameClan", iClient);
+			CPrintToChat(iClient, print_buff);
+		}
 	}
 }
 
@@ -1296,7 +1237,6 @@ int Clan_ClanTagSetMenu(Handle clanTagSetMenu, MenuAction action, int client, in
 		}
 		FormatEx(sBuff, sizeof(sBuff), "%T", "c_ClanTagSetSuccess", client);
 		CPrintToChat(client, sBuff);
-		//ThrowClanTagSettings(client);
 		ThrowLastMenu(client, true);	//v1.86
 	}
 	else if(action == MenuAction_End)
@@ -1305,7 +1245,6 @@ int Clan_ClanTagSetMenu(Handle clanTagSetMenu, MenuAction action, int client, in
 	}
 	else if(option == MenuCancel_ExitBack && action == MenuAction_Cancel)
 	{
-		//ThrowClanMenuToClient(client);
 		ThrowLastMenu(client);	//v1.86
 	}
 }
@@ -1324,9 +1263,67 @@ bool ThrowClanMenuToClient(int client)
 		return false;
 	ADMIN_STYPE = -1;
 	ADMIN_STARGET = -1;
-	char query[200];
-	FormatEx(query, sizeof(query), "SELECT `player_role` FROM `players_table` WHERE `player_id` = '%d'", ClanClient);
-	g_hClansDB.Query(DBM_ClanMenuCallback, query, client);
+
+	//moved here from v1.88
+	char print_buff[BUFF_SIZE];
+	
+	Handle playerClanMenu = CreateMenu(Clan_PlayerClanSelectMenu);
+	FormatEx(print_buff, sizeof(print_buff), "%T", "m_ClanMenu", client);
+	SetMenuTitle(playerClanMenu, print_buff);
+	
+	AdminId adminid = GetUserAdmin(client);
+	bool hasAdminAccess = adminid != INVALID_ADMIN_ID ? GetAdminFlag(adminid, Admin_Root) : false;
+	
+	if(hasAdminAccess)
+	{
+		FormatEx(print_buff, sizeof(print_buff), "%T", "m_AdminMenu", client);
+		AddMenuItem(playerClanMenu, "AdminMenu", print_buff);
+	}
+	
+	if(ClanClient >= 0)
+	{
+		int clientRole = g_iClientData[client][CLIENT_ROLE];
+		if(CanRoleDoAnything(clientRole))
+		{
+			FormatEx(print_buff, sizeof(print_buff), "%T", "m_ClanControl", client);
+			AddMenuItem(playerClanMenu, "ClanControl", print_buff);
+		}
+		FormatEx(print_buff, sizeof(print_buff), "%T", "m_ClanStatsMenu", client);
+		AddMenuItem(playerClanMenu, "ClanStats", print_buff);
+		FormatEx(print_buff, sizeof(print_buff), "%T", "m_MyStatsMenu", client);
+		AddMenuItem(playerClanMenu, "PlayerStats", print_buff);
+		FormatEx(print_buff, sizeof(print_buff), "%T", "m_Members", client);
+		AddMenuItem(playerClanMenu, "Members", print_buff);
+		FormatEx(print_buff, sizeof(print_buff), "%T", "m_WriteToClanChat", client);
+		AddMenuItem(playerClanMenu, "ClanChatWrite", print_buff);
+		FormatEx(print_buff, sizeof(print_buff), "%T", "m_Top", client);
+		AddMenuItem(playerClanMenu, "TopClans", print_buff);
+		FormatEx(print_buff, sizeof(print_buff), "%T", "m_ClanTagSet", client);
+		AddMenuItem(playerClanMenu, "ClanTagSet", print_buff);
+		FormatEx(print_buff, sizeof(print_buff), "%T", "m_ClanHelpCmds", client);
+		AddMenuItem(playerClanMenu, "ClanHelp", print_buff);
+		if(!(clientRole == CLIENT_LEADER) || (clientRole == CLIENT_LEADER && g_bLeaderLeave))
+		{
+			FormatEx(print_buff, sizeof(print_buff), "%T", "m_LeaveClan", client);
+			AddMenuItem(playerClanMenu, "LeaveClan", print_buff);
+		}
+	}
+	else
+	{
+		FormatEx(print_buff, sizeof(print_buff), "%T", "m_CreateClan", client);
+		AddMenuItem(playerClanMenu, "ClanCreate", print_buff);
+		FormatEx(print_buff, sizeof(print_buff), "%T", "m_Top", client);
+		AddMenuItem(playerClanMenu, "TopClans", print_buff);
+		FormatEx(print_buff, sizeof(print_buff), "%T", "m_ClanTagSet", client);
+		AddMenuItem(playerClanMenu, "ClanTagSet", print_buff);
+		FormatEx(print_buff, sizeof(print_buff), "%T", "m_ClanHelpCmds", client);
+		AddMenuItem(playerClanMenu, "ClanHelp", print_buff);
+	}
+	F_OnClanMenuOpened(playerClanMenu, client);
+	SetMenuExitButton(playerClanMenu, true);
+	DisplayMenu(playerClanMenu, client, 0);
+	//======
+
 	g_asClientLastMenu[client].Push(MDINT(MD_ThrowClanMenuToClient));
 	g_asMClientBuffer[client].Push(NO_BUFF_DATA);
 	return true;
@@ -1380,18 +1377,33 @@ bool ThrowPlayerStatsToClient(int client, int targetID)
 			FormatEx(stats, sizeof(stats), "%T", "m_PlayerStats", client, targetName, 
 																	targetID, g_sClientData[i][CLIENT_CLANNAME], 
 																	targetClanid, status, 
-																	targetKills, targetDeaths, 
+																	targetKills, targetDeaths, (targetDeaths != 0 ? float(targetKills) / targetDeaths : float(targetKills)),
 																	timeInClan, sLastJoin);
 			DrawPanelText(playerStatsMenu, stats);
-			F_OnPlayerStatsOpened(playerStatsMenu, client);
+			F_OnPlayerStatsOpened(playerStatsMenu, client, targetID);
 			SendPanelToClient(playerStatsMenu, client, Clan_PlayerStatsMenu, 0);
 			g_asClientLastMenu[client].Push(MDINT(MD_ThrowPlayerStatsToClient));
 			g_asMClientBuffer[client].Push(targetID);
 			return true;
 		}
 	}
-	char query[300];
-	FormatEx(query, sizeof(query), "SELECT `player_id`, `player_clanid`, `player_role`, `player_kills`, `player_deaths`, `player_timejoining`, player_lastjoin FROM `players_table` WHERE `player_id` = '%d'", targetID);
+	char query[700];
+	FormatEx(query, sizeof(query), "SELECT \
+										`player_id`, \
+										`player_clanid`, \
+										`player_role`, \
+										`player_kills`, \
+										`player_deaths`, \
+										`player_timejoining`, \
+										`player_lastjoin`, \
+										`clans_table`.`clan_name`, \
+										`player_name` \
+									FROM \
+										`players_table` \
+									JOIN \
+										`clans_table` ON `clans_table`.`clan_id` = `players_table`.`player_clanid` \
+									WHERE \
+										`player_id` = '%d'", targetID);
 	g_hClansDB.Query(DBM_PlayerStats, query, client);
 	g_asClientLastMenu[client].Push(MDINT(MD_ThrowPlayerStatsToClient));
 	g_asMClientBuffer[client].Push(targetID);
@@ -1411,8 +1423,25 @@ bool ThrowClanStatsToClient(int client, int clanid)
 	if(client < 1 || client > MaxClients || !IsClientInGame(client))
 		return false;
 	char query[300];
-	FormatEx(query, sizeof(query), "SELECT `clan_name`, `clan_id`, `clan_type`, `leader_name`, `maxmembers`, `clan_kills`, `clan_deaths`, `time_creation`, `clan_coins` FROM `clans_table` WHERE `clan_id` = '%d';", clanid);
-	g_hClansDB.Query(DBM_ClanStats, query, client);
+	FormatEx(query, sizeof(query), "SELECT \
+										`clan_name`, \
+										`clan_type`, \
+										`leader_name`, \
+										`maxmembers`, \
+										`clan_kills`, \
+										`clan_deaths`, \
+										`time_creation`, \
+										`clan_coins`, \
+										(SELECT COUNT(*) FROM players_table WHERE player_clanid = %d) \
+									FROM \
+										`clans_table` \
+									WHERE \
+										`clan_id` = %d;", clanid, clanid);
+	DataPack dp = CreateDataPack();
+	dp.WriteCell(client);
+	dp.WriteCell(clanid);
+	dp.Reset();
+	g_hClansDB.Query(DBM_ClanStats, query, dp);
 	g_asClientLastMenu[client].Push(MDINT(MD_ThrowClanStatsToClient));
 	g_asMClientBuffer[client].Push(clanid);
 	return true;
@@ -1448,7 +1477,11 @@ bool ThrowClanMembersToClient(int client, int clanid, int showFlags)
 	{
 		Format(query, sizeof(query), "%s AND `player_role` <= '%d'", query, GetClientRoleByID(ClanClient));
 	}
-	g_hClansDB.Query(DBM_ClanMembersListCallback, query, client);
+	DataPack dp = CreateDataPack();
+	dp.WriteCell(client);
+	dp.WriteCell(clanid);
+	dp.Reset();
+	g_hClansDB.Query(DBM_ClanMembersListCallback, query, dp);
 	g_asClientLastMenu[client].Push(MDINT(MD_ThrowClanMembersToClient));
 	g_asMClientBuffer[client].Push(clanid | showFlags << 29);
 	return true;
@@ -1471,24 +1504,25 @@ bool ThrowTopsMenuToClient(int client)
 	SetMenuTitle(topsMenu, print_buff);
 	FormatEx(print_buff, sizeof(print_buff), "%T", "t_KillsDesc", client);
 	AddMenuItem(topsMenu, "KillsDesc", print_buff);
-	FormatEx(print_buff, sizeof(print_buff), "%T", "t_KillsAsc", client);
-	AddMenuItem(topsMenu, "KillsInc", print_buff);
+	//FormatEx(print_buff, sizeof(print_buff), "%T", "t_KillsAsc", client);
+	//AddMenuItem(topsMenu, "KillsInc", print_buff);
 	FormatEx(print_buff, sizeof(print_buff), "%T", "t_DeathsDesc", client);
 	AddMenuItem(topsMenu, "DeathsDesc", print_buff);
-	FormatEx(print_buff, sizeof(print_buff), "%T", "t_DeathsAsc", client);
-	AddMenuItem(topsMenu, "DeathsInc", print_buff);
+	//FormatEx(print_buff, sizeof(print_buff), "%T", "t_DeathsAsc", client);
+	//AddMenuItem(topsMenu, "DeathsInc", print_buff);
 	FormatEx(print_buff, sizeof(print_buff), "%T", "t_TimeDesc", client);
 	AddMenuItem(topsMenu, "TimeDesc", print_buff);
-	FormatEx(print_buff, sizeof(print_buff), "%T", "t_TimeAsc", client);
-	AddMenuItem(topsMenu, "TimeInc", print_buff);
+	//FormatEx(print_buff, sizeof(print_buff), "%T", "t_TimeAsc", client);
+	//AddMenuItem(topsMenu, "TimeInc", print_buff);
 	FormatEx(print_buff, sizeof(print_buff), "%T", "t_MembersDesc", client);
 	AddMenuItem(topsMenu, "MembersDesc", print_buff);
-	FormatEx(print_buff, sizeof(print_buff), "%T", "t_MembersAsc", client);
-	AddMenuItem(topsMenu, "MembersInc", print_buff);
+	//FormatEx(print_buff, sizeof(print_buff), "%T", "t_MembersAsc", client);
+	//AddMenuItem(topsMenu, "MembersInc", print_buff);
 	FormatEx(print_buff, sizeof(print_buff), "%T", "t_CoinsDesc", client);
 	AddMenuItem(topsMenu, "CoinsDesc", print_buff);
-	FormatEx(print_buff, sizeof(print_buff), "%T", "t_CoinsAsc", client);
-	AddMenuItem(topsMenu, "CoinsInc", print_buff);
+	//FormatEx(print_buff, sizeof(print_buff), "%T", "t_CoinsAsc", client);
+	//AddMenuItem(topsMenu, "CoinsInc", print_buff);
+	F_OnTopMenuOpened(topsMenu, client);
 	if(IsMBufferEmpty(client))
 		SetMenuExitButton(topsMenu, true);
 	else
@@ -1560,7 +1594,7 @@ bool ThrowClansToClient(int client, bool showClientClan)
 	FormatEx(query, sizeof(query), "SELECT `clan_id`, `clan_name` FROM `clans_table`");
 	if(!showClientClan)
 	{
-		Format(query, sizeof(query), "%s WHERE `clan_id` != '%d'", query, GetClientClanByID(ClanClient));
+		Format(query, sizeof(query), "%s WHERE `clan_id` != '%d'", query, g_iClientData[client][CLIENT_CLANID]);
 	}
 	g_hClansDB.Query(DBM_ClansListCallback, query, client);
 	g_asClientLastMenu[client].Push(MDINT(MD_ThrowClansToClient));
@@ -1695,7 +1729,7 @@ bool ThrowChangeRoleMenu(int client, int targetID)
 	int role = GetClientRoleByID(targetID);
 	int clientRole;
 	if(ADMIN_STYPE != 10)
-		clientRole = GetClientRoleByID(ClanClient);
+		clientRole = g_iClientData[client][CLIENT_ROLE];
 	else
 		clientRole = CLIENT_LEADER;
 	char print_buff[100];
@@ -1864,8 +1898,6 @@ void ThrowLastMenu(int iClient, bool bActualMenu = false)
 			iFlags = params & (TLM_PARAM1(params) | TLM_PARAM2(params));
 			iFlags = iFlags >> 29;
 		}
-		
-		//PrintToServer("Menu -> |%d|\nbActualMenu = %d\nparams = %d | %d\niFlags = %d", mdFunc, bActualMenu, params, TLM_NO_FLAGS(params), iFlags);	//DEBUG
 
 		switch(mdFunc)
 		{
@@ -1938,7 +1970,7 @@ void ThrowLastMenu(int iClient, bool bActualMenu = false)
 /**
  * Показ списка участников клана игроку
  */
-void DBM_ClanMembersListCallback(Handle owner, Handle hndl, const char[] error, int client)
+void DBM_ClanMembersListCallback(Handle owner, Handle hndl, const char[] error, DataPack dp)
 {
 	if(hndl == INVALID_HANDLE)
 	{
@@ -1946,11 +1978,13 @@ void DBM_ClanMembersListCallback(Handle owner, Handle hndl, const char[] error, 
 	}
 	else
 	{
+		int client = dp.ReadCell();
+		int clanid = dp.ReadCell();
 		if(SQL_FetchRow(hndl))
 		{
 			char playerName[MAX_NAME_LENGTH+5],
 				 playerSteam[33],
-				 buffer[60];	//Для заголовка и ролей
+				 buffer[100];	//Для заголовка и ролей
 				 
 			int iRole;
 			Handle clanMembersMenu = CreateMenu(Clan_ClanMembersSelectMenu);
@@ -1981,8 +2015,14 @@ void DBM_ClanMembersListCallback(Handle owner, Handle hndl, const char[] error, 
 			char print_buff[BUFF_SIZE];
 			FormatEx(print_buff, sizeof(print_buff), "%T", "NoPlayers", client);
 			CPrintToChat(client, print_buff);
+			for(int i = 1; i <= MaxClients; ++i)
+			{
+				if(IsClientInGame(i) && g_iClientData[i][CLIENT_CLANID] == clanid)
+					ClearClientData(i);
+			}
 		}
 	}
+	delete dp;
 }
 
 /**
@@ -2137,9 +2177,9 @@ void DBM_PlayerStats(Handle owner, Handle hndl, const char[] error, int client)
 		int targetDeaths = SQL_FetchInt(hndl, 4);
 		int targetTimeInClan = SQL_FetchInt(hndl, 5);
 		int targetLastJoin = SQL_FetchInt(hndl, 6);
-		
-		GetClanName(targetClanid, targetClanName, sizeof(targetClanName));
-		GetClientNameByID(targetID, targetName, sizeof(targetName));
+		SQL_FetchString(hndl, 7, targetClanName, sizeof(targetClanName));
+		SQL_FetchString(hndl, 8, targetName, sizeof(targetName));
+
 		if(targetLastJoin != 0)
 			FormatTime(sLastJoin, sizeof(sLastJoin), "%d/%m/%Y %H:%M:%S", targetLastJoin);
 		else
@@ -2163,11 +2203,11 @@ void DBM_PlayerStats(Handle owner, Handle hndl, const char[] error, int client)
 		FormatEx(stats, sizeof(stats), "%T", "m_PlayerStats", client, targetName, 
 															  targetID, targetClanName, 
 															  targetClanid, status, 
-															  targetKills, targetDeaths, 
+															  targetKills, targetDeaths, (targetDeaths != 0 ? float(targetKills) / targetDeaths : float(targetKills)),
 															  timeInClan, sLastJoin);
 		
 		DrawPanelText(playerStatsMenu, stats);
-		F_OnPlayerStatsOpened(playerStatsMenu, client);
+		F_OnPlayerStatsOpened(playerStatsMenu, client, targetID);
 		SendPanelToClient(playerStatsMenu, client, Clan_PlayerStatsMenu, 0);
 	}
 }
@@ -2175,8 +2215,10 @@ void DBM_PlayerStats(Handle owner, Handle hndl, const char[] error, int client)
 /**
  * Показ статистики клана, стадия 1
  */	
-void DBM_ClanStats(Handle owner, Handle hndl, const char[] error, int client)
+void DBM_ClanStats(Handle owner, Handle hndl, const char[] error, DataPack dp)
 {
+	int client = dp.ReadCell();
+	int clanid = dp.ReadCell();
 	if(hndl == INVALID_HANDLE)
 	{
 		LogError("[CLANS] Query Fail get clan stats: %s", error);
@@ -2187,15 +2229,14 @@ void DBM_ClanStats(Handle owner, Handle hndl, const char[] error, int client)
 			 leaderName[MAX_NAME_LENGTH+1],
 			 dateCreation[30];
 		SQL_FetchString(hndl, 0, clanName, sizeof(clanName));
-		int clanid = SQL_FetchInt(hndl, 1);
-		int iType = SQL_FetchInt(hndl, 2);
-		SQL_FetchString(hndl, 3, leaderName, sizeof(leaderName));
-		int maxMembers = SQL_FetchInt(hndl, 4);
-		int kills = SQL_FetchInt(hndl, 5);
-		int deaths = SQL_FetchInt(hndl, 6);
-		int iTimeCreation = SQL_FetchInt(hndl, 7);
-		int coins = SQL_FetchInt(hndl, 8);
-		int members = GetClanMembers(clanid);
+		int iType = SQL_FetchInt(hndl, 1);
+		SQL_FetchString(hndl, 2, leaderName, sizeof(leaderName));
+		int maxMembers = SQL_FetchInt(hndl, 3);
+		int kills = SQL_FetchInt(hndl, 4);
+		int deaths = SQL_FetchInt(hndl, 5);
+		int iTimeCreation = SQL_FetchInt(hndl, 6);
+		int coins = SQL_FetchInt(hndl, 7);
+		int members = SQL_FetchInt(hndl, 8);	//v1.87
 
 		FormatTime(dateCreation, sizeof(dateCreation), "%d/%m/%Y %H:%M:%S", iTimeCreation);
 		
@@ -2206,7 +2247,7 @@ void DBM_ClanStats(Handle owner, Handle hndl, const char[] error, int client)
 		SetPanelTitle(clanStatsMenu, stats);
 		FormatEx(stats, sizeof(stats), "%T", "m_SeeMembers", client);
 		DrawPanelItem(clanStatsMenu, stats, 0);
-		if(GetClanType(clanid) == 1 && ClanClient == -1)
+		if(iType == 1 && ClanClient == -1)	//v1.87
 		{
 			FormatEx(stats, sizeof(stats), "%T", "m_JoinClan", client);
 			DrawPanelItem(clanStatsMenu, stats, 0);
@@ -2220,12 +2261,60 @@ void DBM_ClanStats(Handle owner, Handle hndl, const char[] error, int client)
 		
 		FormatEx(stats, sizeof(stats), "%T", "m_ClanStats", client, 
 		clanName, clanid, sType, leaderName, members, maxMembers,
-		kills, deaths, dateCreation, coins);
+		kills, deaths, (deaths != 0 ? float(kills)/deaths : float(kills)), dateCreation, coins);
 		DrawPanelText(clanStatsMenu, stats);
 			
-		F_OnClanStatsOpened(clanStatsMenu, client);
-		CLAN_STARGET = clanid;
+		F_OnClanStatsOpened(clanStatsMenu, client, clanid);
+		CLAN_STARGET = clanid | iType << 30;
 		SendPanelToClient(clanStatsMenu, client, Clan_ClanStatsMenu, 0);
+	}
+	else
+	{
+		for(int i = 1; i <= MaxClients; ++i)
+		{
+			if(IsClientInGame(i) && g_iClientData[i][CLIENT_CLANID] == clanid)
+				ClearClientData(i);
+		}
+	}
+	delete dp;
+}
+
+/**
+ * Если клан открыт и игрок нажал "присоединиться"	v1.87
+ */
+void DBM_ClanStatsMenuSelected(Database db, DBResultSet rSet, const char[] sError, int client)
+{
+	if(sError[0])
+	{
+		LogError("[CLANS] Failed to get members and maxmembers in Clan_ClanStatsMenu: %s", sError);
+	}
+	else if(rSet.FetchRow())
+	{
+		int clanid = rSet.FetchInt(0);
+		int iMembers = rSet.FetchInt(1);
+		int iMaxMembers = rSet.FetchInt(2);
+		if(iMembers >= iMaxMembers)
+		{
+			CPrintToChat(client, "%T", "c_MaxMembersInClan", client);
+			CLAN_STYPE = -1;
+			CLAN_STARGET = -1;
+			ThrowLastMenu(client, true);	//v1.86
+		}
+		else
+		{
+			if(CheckForLog(LOG_CLIENTACTION))
+			{
+				char 	log_buff[LOG_SIZE],
+						clanName[MAX_CLAN_NAME+1];
+				rSet.FetchString(3, clanName, sizeof(clanName));
+				FormatEx(log_buff, sizeof(log_buff), "%T", "L_CreatePlayer", LANG_SERVER, clanName);
+				DB_LogAction(client, false, -1, log_buff, -1, true, clanid, LOG_CLIENTACTION);
+			}
+			SetOnlineClientClan(client, clanid, 0);
+			CPrintToChat(client, "%T", "c_JoinSuccess", client);
+			CLAN_STYPE = -1;
+			CLAN_STARGET = -1;
+		}
 	}
 }
 
@@ -2242,7 +2331,8 @@ void DBM_ControlMenuCallback(Handle owner, Handle hndl, const char[] error, int 
 	{
 		if(SQL_FetchRow(hndl) && IsClientInGame(client))
 		{
-			int role = SQL_FetchInt(hndl, 0);
+			g_iClientData[client][CLIENT_ROLE] = SQL_FetchInt(hndl, 0);
+			int role = g_iClientData[client][CLIENT_ROLE];	// так приятнее выглядит :)
 			if(!CanRoleDoAnything(role))
 				return;
 			Handle clanControlMenu = CreateMenu(Clan_ClanControlSelectMenu);
@@ -2294,79 +2384,9 @@ void DBM_ControlMenuCallback(Handle owner, Handle hndl, const char[] error, int 
 			SetMenuExitBackButton(clanControlMenu, true);
 			DisplayMenu(clanControlMenu, client, 0);
 		}
-	}
-}
-
-void DBM_ClanMenuCallback(Handle owner, Handle hndl, const char[] error, int client)
-{
-	if(hndl == INVALID_HANDLE)
-	{
-		LogError("[CLANS] Query Fail get player's role for main clan menu: %s", error);
-	}
-	else
-	{
-		int clientRole = 0;
-		if(SQL_FetchRow(hndl))
-		{
-			clientRole = SQL_FetchInt(hndl, 0);
-		}
-		else	//v1.86. Если будет плохо, то переделать
-			ClanClient = -1;
-		char print_buff[BUFF_SIZE];
-	
-		Handle playerClanMenu = CreateMenu(Clan_PlayerClanSelectMenu);
-		FormatEx(print_buff, sizeof(print_buff), "%T", "m_ClanMenu", client);
-		SetMenuTitle(playerClanMenu, print_buff);
-		
-		AdminId adminid = GetUserAdmin(client);
-		bool hasAdminAccess = adminid != INVALID_ADMIN_ID ? GetAdminFlag(adminid, Admin_Root) : false;
-		
-		if(hasAdminAccess)
-		{
-			FormatEx(print_buff, sizeof(print_buff), "%T", "m_AdminMenu", client);
-			AddMenuItem(playerClanMenu, "AdminMenu", print_buff);
-		}
-		
-		if(ClanClient >= 0)
-		{
-			if(CanRoleDoAnything(clientRole))
-			{
-				FormatEx(print_buff, sizeof(print_buff), "%T", "m_ClanControl", client);
-				AddMenuItem(playerClanMenu, "ClanControl", print_buff);
-			}
-			FormatEx(print_buff, sizeof(print_buff), "%T", "m_ClanStatsMenu", client);
-			AddMenuItem(playerClanMenu, "ClanStats", print_buff);
-			FormatEx(print_buff, sizeof(print_buff), "%T", "m_MyStatsMenu", client);
-			AddMenuItem(playerClanMenu, "PlayerStats", print_buff);
-			FormatEx(print_buff, sizeof(print_buff), "%T", "m_Members", client);
-			AddMenuItem(playerClanMenu, "Members", print_buff);
-			FormatEx(print_buff, sizeof(print_buff), "%T", "m_WriteToClanChat", client);
-			AddMenuItem(playerClanMenu, "ClanChatWrite", print_buff);
-			FormatEx(print_buff, sizeof(print_buff), "%T", "m_Top", client);
-			AddMenuItem(playerClanMenu, "TopClans", print_buff);
-			FormatEx(print_buff, sizeof(print_buff), "%T", "m_ClanTagSet", client);
-			AddMenuItem(playerClanMenu, "ClanTagSet", print_buff);
-			FormatEx(print_buff, sizeof(print_buff), "%T", "m_ClanHelpCmds", client);
-			AddMenuItem(playerClanMenu, "ClanHelp", print_buff);
-			if(!(clientRole == CLIENT_LEADER) || (clientRole == CLIENT_LEADER && g_bLeaderLeave))
-			{
-				FormatEx(print_buff, sizeof(print_buff), "%T", "m_LeaveClan", client);
-				AddMenuItem(playerClanMenu, "LeaveClan", print_buff);
-			}
-		}
 		else
 		{
-			FormatEx(print_buff, sizeof(print_buff), "%T", "m_CreateClan", client);
-			AddMenuItem(playerClanMenu, "ClanCreate", print_buff);
-			FormatEx(print_buff, sizeof(print_buff), "%T", "m_Top", client);
-			AddMenuItem(playerClanMenu, "TopClans", print_buff);
-			FormatEx(print_buff, sizeof(print_buff), "%T", "m_ClanTagSet", client);
-			AddMenuItem(playerClanMenu, "ClanTagSet", print_buff);
-			FormatEx(print_buff, sizeof(print_buff), "%T", "m_ClanHelpCmds", client);
-			AddMenuItem(playerClanMenu, "ClanHelp", print_buff);
+			ClearClientData(client);
 		}
-		F_OnClanMenuOpened(playerClanMenu, client);
-		SetMenuExitButton(playerClanMenu, true);
-		DisplayMenu(playerClanMenu, client, 0);
 	}
 }
