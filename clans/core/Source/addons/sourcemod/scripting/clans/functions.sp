@@ -440,7 +440,7 @@ void UpdatePlayerClanTag(int client)
 	{
 		if(g_iClientData[client][CLIENT_ROLE] == CLIENT_LEADER)
 		{
-			char leaderTag[16];
+			char leaderTag[16];	//亗
 			FormatEx(leaderTag, sizeof(leaderTag), "♦ %s", g_sClientData[client][CLIENT_CLANNAME]);
 			CS_SetClientClanTag(client, leaderTag);
 		}
@@ -1090,7 +1090,7 @@ bool DeleteClientByID(int clientID)
 	if(clientID < 0)
 		return false;
 	char query[256];
-	FormatEx(query, sizeof(query), "SELECT COUNT(*), player_clanid FROM players_table WHERE player_clanid = (SELECT player_clanid FROM players_table WHERE player_id = %d)", clientID);
+	FormatEx(query, sizeof(query), "SELECT COUNT(*), player_clanid FROM players_table WHERE player_clanid = (SELECT player_clanid FROM players_table WHERE player_id = %d) GROUP BY player_clanid", clientID);
 	g_hClansDB.Query(DBF_DeleteClientByID, query, clientID);	//v1.87T
 	return true;
 }
