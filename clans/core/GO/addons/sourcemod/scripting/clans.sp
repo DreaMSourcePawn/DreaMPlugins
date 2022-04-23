@@ -9,7 +9,7 @@
 
 #pragma newdecls required
 
-#define PLUGIN_VERSION "1.873"
+#define PLUGIN_VERSION "1.874"
 #define ClanClient playerID[client]	//Айди игрока в базе данных
 #define BUFF_SIZE 600
 #define LOG_SIZE 512

@@ -986,7 +986,6 @@ int Clans_InviteAcceptMenu(Handle inviteMenu, MenuAction action, int client, int
 			{
 				FormatEx(buff, sizeof(buff), "%T", "c_MaxMembersInClan", client);
 				CPrintToChat(client, buff);
-				invitedBy[client][0] = -1;
 			}
 			else
 			{
@@ -999,7 +998,6 @@ int Clans_InviteAcceptMenu(Handle inviteMenu, MenuAction action, int client, int
 					DB_LogAction(client, false, -1, log_buff, invitedBy[client][0], false, invitingClan, LOG_CLIENTACTION);
 				}
 				SetOnlineClientClan(client, invitingClan, 0);
-				invitedBy[client][0] = -1;
 				FormatEx(buff, sizeof(buff), "%T", "c_JoinSuccess", client);
 				CPrintToChat(client, buff);
 			}

@@ -121,7 +121,7 @@ public Action Command_AcceptClanInvitation(int client, int args)
 		return Plugin_Handled;
 	}
 	int whoInvited = invitedBy[client][0];
-	int invitingClan = g_iClientData[playerID[whoInvited]][CLIENT_CLANID];	//v1.87T
+	int invitingClan = g_iClientData[whoInvited][CLIENT_CLANID];	//v1.87T
 	SetOnlineClientClan(client, invitingClan, CLIENT_MEMBER);
 	FormatEx(buff, sizeof(buff), "%T", "c_JoinSuccess", client);
 	CPrintToChat(client, buff);
@@ -130,7 +130,7 @@ public Action Command_AcceptClanInvitation(int client, int args)
 		char log_buff[LOG_SIZE],
 			 clanName[MAX_CLAN_NAME+1];
 		//GetClanName(invitingClan, clanName, sizeof(clanName));
-		FormatEx(clanName, sizeof(clanName), g_sClientData[playerID[whoInvited]][CLIENT_CLANNAME]);
+		FormatEx(clanName, sizeof(clanName), g_sClientData[whoInvited][CLIENT_CLANNAME]);
 		FormatEx(log_buff, sizeof(log_buff), "%T", "L_CreatePlayer", LANG_SERVER, clanName);
 		DB_LogAction(ClanClient, true, GetClientClanByID(ClanClient), log_buff, -1, true, invitingClan, LOG_CLIENTACTION);
 	}

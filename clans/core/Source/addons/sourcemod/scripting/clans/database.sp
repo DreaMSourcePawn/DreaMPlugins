@@ -63,12 +63,22 @@ void Upgrade1()
 		{
 			if(SQL_FetchInt(hQuery, 0) == 1)	//If 1.51 or low version
 			{
-				FormatEx(query, sizeof(query), "ALTER TABLE `players_table` CHANGE `player_isleader` `player_role` INTEGER;");
-				SQL_TQuery(g_hClansDB, DB_LogError, query, 2);
-				FormatEx(query, sizeof(query), "ALTER TABLE `clans_table` ADD `clan_type` INTEGER default '0';");
-				SQL_TQuery(g_hClansDB, DB_LogError, query, 3);
-				FormatEx(query, sizeof(query), "UPDATE `players_table` SET `player_role` = '4' WHERE `player_role` = '1';");
-				SQL_TQuery(g_hClansDB, DB_LogError, query, 2);
+				char error[255];
+				if(!SQL_FastQuery(g_hClansDB, "ALTER TABLE `players_table` CHANGE `player_isleader` `player_role` INTEGER;"))
+				{
+					SQL_GetError(g_hClansDB, error, sizeof(error));
+					SetFailState("[CLANS] Failed to upgrade players role field (upg1): %s", error);
+				}
+				if(!SQL_FastQuery(g_hClansDB, "ALTER TABLE `clans_table` ADD `clan_type` INTEGER default '0';"))
+				{
+					SQL_GetError(g_hClansDB, error, sizeof(error));
+					SetFailState("[CLANS] Failed to upgrade clans table (add type, upg1): %s", error);
+				}
+				if(!SQL_FastQuery(g_hClansDB, "UPDATE `players_table` SET `player_role` = '4' WHERE `player_role` = '1';"))
+				{
+					SQL_GetError(g_hClansDB, error, sizeof(error));
+					SetFailState("[CLANS] Failed to update players role (upg1): %s", error);
+				}
 			}
 		}
 	}
@@ -96,12 +106,22 @@ void Upgrade2()
 		{
 			if(SQL_FetchInt(hQuery, 0) == 0)	//If 1.86 or low
 			{
-				FormatEx(query, sizeof(query), "ALTER TABLE players_table ADD COLUMN player_lastjoin INT NOT NULL DEFAULT 0;");
-				g_hClansDB.Query(DB_LogError, query, 5);
-				FormatEx(query, sizeof(query), "ALTER TABLE clans_table DROP COLUMN date_creation;");
-				g_hClansDB.Query(DB_LogError, query, 6);
-				FormatEx(query, sizeof(query), "ALTER TABLE clans_table DROP COLUMN members;");
-				g_hClansDB.Query(DB_LogError, query, 7);
+				char error[255];
+				if(!SQL_FastQuery(g_hClansDB, "ALTER TABLE players_table ADD COLUMN player_lastjoin INT NOT NULL DEFAULT 0;"))
+				{
+					SQL_GetError(g_hClansDB, error, sizeof(error));
+					SetFailState("[CLANS] Failed to add player_lastjoin column (upg2): %s", error);
+				}
+				if(!SQL_FastQuery(g_hClansDB, "ALTER TABLE clans_table DROP COLUMN date_creation;"))
+				{
+					SQL_GetError(g_hClansDB, error, sizeof(error));
+					SetFailState("[CLANS] Failed to drop date_creation column in clans_table (upg2): %s", error);
+				}
+				if(!SQL_FastQuery(g_hClansDB, "ALTER TABLE clans_table DROP COLUMN members;"))
+				{
+					SQL_GetError(g_hClansDB, error, sizeof(error));
+					SetFailState("[CLANS] Failed to drop members column in clans_table (upg2): %s", error);
+				}
 			}
 		}
 	}
@@ -118,17 +138,24 @@ void Upgrade3()
 	{
 		if(rSet.FetchRow() && rSet.FetchInt(0) == 0)
 		{
-			FormatEx(query, sizeof(query), "ALTER TABLE `players_table` CHANGE `player_id` `player_id` INT(11) NOT NULL AUTO_INCREMENT;");
-			g_hClansDB.Query(DB_LogError, query, 8);
-			FormatEx(query, sizeof(query), "ALTER TABLE `clans_table` CHANGE `clan_id` `clan_id` INT(11) NOT NULL AUTO_INCREMENT;");
-			g_hClansDB.Query(DB_LogError, query, 9);
+			char error[256];
+			if(!SQL_FastQuery(g_hClansDB, "ALTER TABLE `players_table` CHANGE `player_id` `player_id` INT(11) NOT NULL AUTO_INCREMENT;"))
+			{
+				SQL_GetError(g_hClansDB, error, sizeof(error));
+				SetFailState("[CLANS] Failed to add A_I to players_table (upg3): %s", error);
+			}
+			if(!SQL_FastQuery(g_hClansDB, "ALTER TABLE `clans_table` CHANGE `clan_id` `clan_id` INT(11) NOT NULL AUTO_INCREMENT;"))
+			{
+				SQL_GetError(g_hClansDB, error, sizeof(error));
+				SetFailState("[CLANS] Failed to add A_I to clans_table (upg3): %s", error);
+			}
 		}
 	}
 	else
 	{
-		char sError[256];
-		SQL_GetError(g_hClansDB, sError, sizeof(sError));
-		SetFailState("[CLANS] Failed to upgrade3: %s", sError);
+		char error[256];
+		SQL_GetError(g_hClansDB, error, sizeof(error));
+		SetFailState("[CLANS] Failed to upgrade3: %s", error);
 	}
 	delete rSet;
 }

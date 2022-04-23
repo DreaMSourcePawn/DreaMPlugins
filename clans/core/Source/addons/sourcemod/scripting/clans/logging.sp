@@ -6,10 +6,14 @@ Database g_hLogDB = null;
 void PrepareDatabaseToLog()
 {
 	char DB_Error[255];
-	g_hLogDB = SQLite_UseDatabase("clans_log", DB_Error, sizeof(DB_Error));
+	if(SQL_CheckConfig("clans_log"))
+		g_hLogDB = SQL_Connect("clans_log", true, DB_Error, sizeof(DB_Error));
+	else
+		g_hLogDB = SQLite_UseDatabase("clans_log", DB_Error, sizeof(DB_Error));
+
 	if(g_hLogDB == INVALID_HANDLE)
 	{
-		SetFailState("[Clans] Unable to connect to database (%s)", DB_Error);
+		SetFailState("[Clans] Unable to connect to log database (%s)", DB_Error);
 		return;
 	}
 	SQL_FastQuery(g_hLogDB, "CREATE TABLE IF NOT EXISTS `logs` (`playerid` INTEGER, `pname` VARCHAR(255), `clanid` INTEGER, `cname` VARCHAR(255), `action` TEXT, `toWhomPID` INTEGER, `toWhomPName` VARCHAR(255), `toWhomCID` INTEGER, `toWhomCName` VARCHAR(255), `type` INTEGER, `itime` INTEGER, `time` VARCHAR(50))");
@@ -43,7 +47,7 @@ void DeleteExpiredRecords()
  */
 void DB_LogAction2(int client, bool cid, int clanid, const char[] action, int toWhomP, bool wid, int toWhomCID, int type)
 {
-	char query[1500];
+	char query[2048];
 	char clientName[MAX_NAME_LENGTH+1], clanName[MAX_NAME_LENGTH+1], toWhomPN[MAX_NAME_LENGTH+1], toWhomCN[MAX_NAME_LENGTH+1];
 	int clientID = -1;
 	if(cid)
@@ -143,7 +147,7 @@ void DB_LogAction(int client, bool clientFromDB, int clientClanid, const char[] 
 //Action Timer_LogAction(int client, bool clientFromDB, int clientClanid, const char[] action, int target, bool targetFromDB, int targetClanid, int type)
 Action Timer_LogAction(Handle timer, DataPack data)
 {
-	char query[800],
+	char query[1024],
 		 clientName[MAX_NAME_LENGTH+1],
 		 clientClanName[MAX_NAME_LENGTH+1], 
 		 targetName[MAX_NAME_LENGTH+1], 
@@ -215,7 +219,7 @@ void DB_LogCallback(Handle owner, Handle hndl, const char[] error, DataPack dp)
 			 targetName[MAX_NAME_LENGTH+1], 
 			 targetClanName[MAX_NAME_LENGTH+1], 
 			 action[300],
-			 query[1500];
+			 query[2048];
 		clientClanName = "None"; targetClanName = "None";
 		int clientID = dp.ReadCell();
 		dp.ReadString(clientName, sizeof(clientName));
