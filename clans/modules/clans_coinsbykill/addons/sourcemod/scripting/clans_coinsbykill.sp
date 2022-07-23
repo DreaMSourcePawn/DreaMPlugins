@@ -1,127 +1,143 @@
 #include <sourcemod>
 #include <clans>
+#include <cstrike>
 
-Database g_DB = null;
-
-Handle 	g_hCoinsByKill,
-		g_hCoinsByDeath;
+ConVar 	g_cvCoinsByKill,
+		g_cvCoinsByDeath,
+		g_cvMode;
 
 int		g_iCoinsByKill,
-		g_iCoinsByDeath;
+		g_iCoinsByDeath,
+		g_iMode;
+
+#define MODE_EVERYROUND 1
 
 public Plugin myinfo = 
 { 
 	name = "[Clans] Coins by kill", 
 	author = "Dream", 
 	description = "Give/take coins when player kills/dies", 
-	version = "1.2", 
+	version = "1.4", 
 } 
+
+int		g_iClientCoinsGained[MAXPLAYERS+1],	// То, сколько мы должны будем начислить клану игрока
+		g_iClientClan[MAXPLAYERS+1];		// Хранит старый клан на случай, если игрок выйдет/сменит клан
 
 public void OnPluginStart() 
 {
-	g_hCoinsByKill = CreateConVar("sm_clans_coinsbykill", "1", "Number of coins gained by killing.");
-	g_iCoinsByKill = GetConVarInt(g_hCoinsByKill);
-	HookConVarChange(g_hCoinsByKill, OnConVarChange);
+	g_cvCoinsByKill = CreateConVar("sm_clans_coinsbykill", "1", "Number of coins gained by killing.");
 
-	g_hCoinsByDeath = CreateConVar("sm_clans_coinsbydeath", "1", "Number of coins taken by death.");
-	g_iCoinsByDeath = GetConVarInt(g_hCoinsByDeath);
-	HookConVarChange(g_hCoinsByDeath, OnConVarChange);
+	g_cvCoinsByDeath = CreateConVar("sm_clans_coinsbydeath", "1", "Number of coins taken by death.");
+
+	g_cvMode = CreateConVar("sm_clans_coinsbk_mode", "0", "0 - Save gained coins by player after he/she disconnect, 1 - save coins every round.", 0, true, 0.0, true, 1.0);
 	
 	AutoExecConfig(true, "clans_coinsbykill", "clans");
 	
 	HookEvent("player_death", Death);
+
+	for(int i = 1; i <= MaxClients; ++i)
+	{
+		g_iClientCoinsGained[i] = 0;
+		g_iClientClan[i] = CLAN_INVALID_CLAN;
+	}
 	
 	if(Clans_AreClansLoaded())
 		Clans_OnClansLoaded();
 }
 
-public void OnPluginEnd()
+public void OnConfigsExecuted()
 {
-	UnhookEvent("player_death", Death);
+	g_iCoinsByKill = g_cvCoinsByKill.IntValue;
+	HookConVarChange(g_cvCoinsByKill, OnConVarChange);
+
+	g_iCoinsByDeath = g_cvCoinsByDeath.IntValue;
+	HookConVarChange(g_cvCoinsByDeath, OnConVarChange);
+
+	g_iMode = g_cvMode.IntValue;
+	HookConVarChange(g_cvMode, OnConVarChange);
+}
+
+public Action CS_OnTerminateRound(float& delay, CSRoundEndReason& reason)
+{
+	if(g_iMode == MODE_EVERYROUND)
+	{
+		for(int i = 1; i <= MaxClients; ++i)
+		{
+			if(IsClientInGame(i) && g_iClientClan[i] != CLAN_INVALID_CLAN)
+			{
+				ChangeCoins(g_iClientClan[i], g_iClientCoinsGained[i]);
+				g_iClientCoinsGained[i] = 0;
+			}
+		}
+	}
 }
 
 public void Clans_OnClansLoaded()
 {
-	g_DB = Clans_GetClanDatabase();
-	if(g_DB == null)
+	for(int i = 1; i <= MaxClients; ++i)
 	{
-		LogError("[CLANS COINS] Failed to get database. Use 1.1 give system");
+		if(IsClientInGame(i) && g_iClientClan[i] != CLAN_INVALID_CLAN)
+		{
+			ChangeCoins(g_iClientClan[i], g_iClientCoinsGained[i]);
+		}
 	}
 }
 
-public void OnConVarChange(Handle hCvar, const char[] oldValue, const char[] newValue)
+void OnConVarChange(ConVar hCvar, const char[] oldValue, const char[] newValue)
 {
-	if(hCvar == g_hCoinsByKill) 
-		g_iCoinsByKill = StringToInt(newValue);
-	else if(hCvar == g_hCoinsByDeath) 
-		g_iCoinsByDeath = StringToInt(newValue);
+	if(hCvar == g_cvCoinsByKill) 
+		g_iCoinsByKill = g_cvCoinsByKill.IntValue;
+	else if(hCvar == g_cvCoinsByDeath) 
+		g_iCoinsByDeath = g_cvCoinsByDeath.IntValue;
+	else if(hCvar == g_cvMode) 
+		g_iMode = g_cvMode.IntValue;
 }
 
-public Action Death(Handle event, const char[] name, bool db)
+public void Clans_OnClientLoaded(int iClient, int iClientID, int iClanid)
+{
+	g_iClientClan[iClient] = iClanid;
+	g_iClientCoinsGained[iClient] = 0;
+}
+
+public void Clans_OnClientAdded(int iClient, int iClientID, int iClanid)
+{
+	if(g_iClientClan[iClient] != CLAN_INVALID_CLAN)
+		ChangeCoins(g_iClientClan[iClient], g_iClientCoinsGained[iClient]);
+	g_iClientClan[iClient] = iClanid;
+}
+
+public void Clans_OnClientDeleted(int iClient, int iClientID, int iClanid)
+{
+	if(iClient != -1)
+	{
+		if(g_iClientClan[iClient] != CLAN_INVALID_CLAN)
+			ChangeCoins(g_iClientClan[iClient], g_iClientCoinsGained[iClient]);
+		g_iClientClan[iClient] = CLAN_INVALID_CLAN;
+	}
+}
+
+public void OnClientDisconnect(int iClient)
+{
+	if(g_iClientClan[iClient] != CLAN_INVALID_CLAN)
+		ChangeCoins(g_iClientClan[iClient], g_iClientCoinsGained[iClient]);
+
+	g_iClientClan[iClient] = g_iClientCoinsGained[iClient] = CLAN_INVALID_CLAN;
+}
+
+Action Death(Handle event, const char[] name, bool db)
 {
 	int iVictim = GetClientOfUserId(GetEventInt(event, "userid"));
 	int iAttacker = GetClientOfUserId(GetEventInt(event, "attacker"));
-	if(!Clans_AreInDifferentClans(iVictim, iAttacker))
-		return Plugin_Continue;
-	DataPack dp = CreateDataPack();
-	if(g_DB != null)
-	{
-		bool bExecuteToDB = false;
-		int iVictimDB = Clans_GetClientID(iVictim);
-		int iAttackerDB = Clans_GetClientID(iAttacker);
-		Transaction txn = SQL_CreateTransaction();
-		char sQuery[300];
-		if(iAttackerDB != -1)
-		{
-			FormatEx(sQuery, sizeof(sQuery), "UPDATE `clans_table` SET `clan_coins` = `clan_coins` + '%d' WHERE `clan_id` = (SELECT `player_clanid` FROM `players_table` WHERE `player_id` = '%d')", g_iCoinsByKill, iAttackerDB);
-			txn.AddQuery(sQuery);
-			bExecuteToDB = true;
-		}
-		if(iVictimDB != -1)
-		{
-			FormatEx(sQuery, sizeof(sQuery), "UPDATE `clans_table` SET `clan_coins` = (CASE WHEN `clan_coins`-'%d' < 0 THEN 0 ELSE `clan_coins`-'%d' END) WHERE `clan_id` = (SELECT `player_clanid` FROM `players_table` WHERE `player_id` = '%d')", g_iCoinsByDeath, g_iCoinsByDeath, iVictimDB);
-			txn.AddQuery(sQuery);
-			bExecuteToDB = true;
-		}
-		if(bExecuteToDB)
-			SQL_ExecuteTransaction(g_DB, txn, INVALID_FUNCTION, OnTXNFailure);
-	}
-	else
-	{
-		dp.WriteCell(iVictim);
-		dp.WriteCell(iAttacker);
-		dp.Reset();
-		CreateTimer(0.1, GiveTakeCoins, dp, TIMER_DATA_HNDL_CLOSE);
-	}
-	return Plugin_Continue;
+	if(g_iClientClan[iVictim] == g_iClientClan[iAttacker])
+		return;
+	g_iClientCoinsGained[iVictim] -= g_iCoinsByDeath;
+	g_iClientCoinsGained[iAttacker] += g_iCoinsByKill;
 }
 
-Action GiveTakeCoins(Handle timer, DataPack dp)
+void ChangeCoins(int iClanid, int iCoinsToGive)
 {
-	int victim = dp.ReadCell();
-	int attacker = dp.ReadCell();
-	int victimClan = Clans_GetOnlineClientClan(victim);
-	int attackerClan = Clans_GetOnlineClientClan(attacker);
-	
-	if (victimClan != attackerClan && (victimClan != -1 || attackerClan != -1))
+	if(iCoinsToGive != 0)
 	{
-		int coins;
-		if(victimClan != -1)
-		{
-			coins = Clans_GetClanCoins(victimClan);
-			if(coins - g_iCoinsByDeath >= 0)
-				Clans_GiveClanCoins(victimClan, -g_iCoinsByDeath);
-		}
-		if(attackerClan != -1)
-		{
-			coins = Clans_GetClanCoins(attackerClan);
-			if(coins + g_iCoinsByKill >= 0)
-				Clans_GiveClanCoins(attackerClan, g_iCoinsByKill);
-		}
+		Clans_GiveClanCoins(iClanid, iCoinsToGive);
 	}
-}
-
-void OnTXNFailure(Database db, any data, int numQueries, const char[] error, int failIndex, any[] queryData)
-{
-	LogError("[CLANS COINS] Failed on %d/%d query: %s", failIndex, numQueries, error);
 }
