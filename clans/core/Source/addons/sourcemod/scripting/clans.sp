@@ -9,7 +9,7 @@
 
 #pragma newdecls required
 
-#define PLUGIN_VERSION "1.874"
+#define PLUGIN_VERSION "1.88"
 #define ClanClient playerID[client]	//Айди игрока в базе данных
 #define BUFF_SIZE 600
 #define LOG_SIZE 512
@@ -171,6 +171,18 @@ char	g_cCCLeader[20],		//Color for leader in clan chat
 #define LOG_CLANCHAT 256
 //===================== LOG FLAGS END =====================//
 
+//===================== ROLES OPTIONS v1.88 =====================//
+/**
+ * Contains indexes of extra options for roles
+ *
+ * 0 - member
+ * 1 - elder
+ * 2 - co-leader
+ * 3 - leader
+ */
+ArrayList g_alRolesOptions[4];
+//===================== ROLES OPTIONS END =====================//
+
 #include "clans/forwards.sp"
 #include "clans/cookies.sp"
 #include "clans/database.sp"
@@ -220,6 +232,11 @@ public void OnPluginStart()
 			OnClientPostAdminCheck(i);
 	}
 
+	for(int i = 0; i < 4; ++i)
+	{
+		g_alRolesOptions[i] = new ArrayList();
+	}
+
 	ClansLoaded();
 }
 
@@ -229,6 +246,25 @@ public void OnPluginEnd()
 	{
 		if(IsClientInGame(i))
 			DB_SavePlayer(i);
+	}
+}
+
+public void OnConfigsExecuted()
+{
+	//v1.88 Прогоняем по плагинам, которые регистрировались для дополнительных опций в меню управления кланом
+	//Если плагин забыл сообщить о снятии опции, то тут это и узнается
+	Handle hPlugin;
+	for(int i = 0; i < 4; ++i)
+	{
+		for(int j = 0; j < g_alRolesOptions[i].Length; ++j)
+		{
+			hPlugin = g_alRolesOptions[i].Get(j);
+			if(!F_ApproveHandle(hPlugin))
+			{
+				g_alRolesOptions[i].Erase(j);
+				j--;
+			}
+		}
 	}
 }
 
@@ -306,7 +342,7 @@ Action SayHook(int client, const char[] command, int args)
 			writeToClanChat[client] = false;
 			return Plugin_Handled;
 		}
-		else if(ADMIN_STYPE >= 0 && ADMIN_STYPE != 7 && ADMIN_STYPE != 5)
+		else if(ADMIN_STYPE >= 0 && ADMIN_STYPE != 7 && ADMIN_STYPE != 5 && ADMIN_STARGET != -1)
 		{
 			char adminName[MAX_NAME_LENGTH+1];
 			GetClientName(client, adminName, sizeof(adminName));
@@ -696,19 +732,23 @@ Action SayHook(int client, const char[] command, int args)
 					clanName[i] = buff[i];
 				clanName[MAX_CLAN_NAME] = '\0';
 			}
-			
-			char clanNameEscaped[MAX_CLAN_NAME*2+1];
-			g_hClansDB.Escape(clanName, clanNameEscaped, sizeof(clanNameEscaped));
-			DataPack dp = CreateDataPack();
+
 			GetClanName(clanid, clanPrevName, sizeof(clanPrevName));
-			dp.WriteCell(client);
-			dp.WriteCell(clanid);
-			dp.WriteString(clanPrevName);
-			dp.WriteString(clanName);
-			dp.WriteCell(takeCoins);
-			dp.Reset();
-			FormatEx(query, sizeof(query), "SELECT 1 FROM `clans_table` WHERE `clan_name` = '%s'", clanNameEscaped);
-			g_hClansDB.Query(DB_RenameClanCallback, query, dp);
+
+			if(F_PreClanRename(clanid, clanPrevName, clanName, client))
+			{
+				char clanNameEscaped[MAX_CLAN_NAME*2+1];
+				g_hClansDB.Escape(clanName, clanNameEscaped, sizeof(clanNameEscaped));
+				DataPack dp = CreateDataPack();
+				dp.WriteCell(client);
+				dp.WriteCell(clanid);
+				dp.WriteString(clanPrevName);
+				dp.WriteString(clanName);
+				dp.WriteCell(takeCoins);
+				dp.Reset();
+				FormatEx(query, sizeof(query), "SELECT 1 FROM `clans_table` WHERE `clan_name` = '%s'", clanNameEscaped);
+				g_hClansDB.Query(DB_RenameClanCallback, query, dp);
+			}
 			renameClan[client] = false;
 			ADMIN_STYPE = -1;
 			ADMIN_STARGET = -1;

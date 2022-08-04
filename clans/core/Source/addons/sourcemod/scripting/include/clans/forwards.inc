@@ -161,3 +161,52 @@ forward void Clans_OnTopMenuOpened(Handle topMenu, int iClient);
  * @param int iOption - selected option
  */
 forward void Clans_OnTopMenuSelected(Handle topMenu, int iClient, int iOption);
+
+/**
+ * Calls when clan control menu was opened
+ *
+ * @param Handle clanControlMenu - clan control menu handle
+ * @param int iClient - client's index
+ */
+forward void Clans_OnClanControlMenuOpened(Handle clanControlMenu, int iClient);
+
+/**
+ * Calls when any item was selected in the clan control menu
+ *
+ * @param Handle clanControlMenu - clan control menu handle
+ * @param int iClient - client's index
+ * @param int iOption - selected option
+ */
+forward void Clans_OnClanControlMenuSelected(Handle clanControlMenu, int iClient, int iOption);
+
+/**
+ * Calls when clan is to be created
+ *
+ * @param int iLeader - leader's index
+ * @param const char[] clanName - clan's name
+ * @param int iCreator - creator's index
+ *
+ * @return Plugin_Continue to allow to create the clan, any other value to not
+ */
+forward Action Clans_PreClanCreate(int iLeader, const char[] clanName, int iCreator);
+
+/**
+ * Calls when clan is to be renamed
+ *
+ * @param int iClanId - clan's index
+ * @param const char[] oldClanName - old clan's name
+ * @param const char[] newClanName - new clan's name
+ * @param int iWhoRename - index of the one who rename the clan
+ *
+ * @return Plugin_Continue to allow to create the clan, any other value to not
+ */
+forward Action Clans_PreClanRename(int iClanId, const char[] oldClanName, const char[] newClanName, int iWhoRename);
+
+/**
+ * Sends approve request for handle which is used for extra option in clan control menu
+ *
+ * @param Handle hPlugin - handle of the plugin to be approved
+ * 
+ * @return true to approve (return GetMyHandle() == hPlugin;)
+ */
+forward bool Clans_ApproveHandle(Handle hPlugin);

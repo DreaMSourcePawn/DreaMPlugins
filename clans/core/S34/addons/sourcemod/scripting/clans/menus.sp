@@ -324,9 +324,10 @@ int Clan_ClanControlSelectMenu(Handle clanControlMenu, MenuAction action, int cl
 {
 	if(action == MenuAction_Select)
 	{
+		F_OnClanControlMenuSelected(clanControlMenu, client, option);	//v1.88
 		char selectedItem[50], print_buff[BUFF_SIZE];
 		int buff;
-		int clientClan = GetClientClanByID(ClanClient);
+		int clientClan = g_iClientData[client][CLIENT_CLANID];
 		GetMenuItem(clanControlMenu, option, selectedItem, sizeof(selectedItem), buff, "", 0);
 		if(!strcmp(selectedItem, "Expand"))
 		{
@@ -1252,10 +1253,11 @@ int Clan_ClanTagSetMenu(Handle clanTagSetMenu, MenuAction action, int client, in
  * Throws clan menu to player
  *
  * @param int client - player's id, who will see the clan menu
+ * @param bool saveAsLastMenu - flag if menu should be added in player's stack of menus
  *
  * @return true - success, false - failed
  */
-bool ThrowClanMenuToClient(int client)
+bool ThrowClanMenuToClient(int client, bool saveAsLastMenu = true)
 {
 	if(client < 1 || client > MaxClients || !IsClientInGame(client))
 		return false;
@@ -1322,8 +1324,11 @@ bool ThrowClanMenuToClient(int client)
 	DisplayMenu(playerClanMenu, client, 0);
 	//======
 
-	g_asClientLastMenu[client].Push(MDINT(MD_ThrowClanMenuToClient));
-	g_asMClientBuffer[client].Push(NO_BUFF_DATA);
+	if(saveAsLastMenu)
+	{
+		g_asClientLastMenu[client].Push(MDINT(MD_ThrowClanMenuToClient));
+		g_asMClientBuffer[client].Push(NO_BUFF_DATA);
+	}
 	return true;
 }
 
@@ -1332,10 +1337,11 @@ bool ThrowClanMenuToClient(int client)
  *
  * @param int client - player's id, who will see the stats
  * @param int targetID - player's id in database, whose stats will be shown
+ * @param bool saveAsLastMenu - flag if menu should be added in player's stack of menus
  *
  * @return true - success, false - failed
  */
-bool ThrowPlayerStatsToClient(int client, int targetID)
+bool ThrowPlayerStatsToClient(int client, int targetID, bool saveAsLastMenu = true)
 {
 	if(client < 1 || client > MaxClients || !IsClientInGame(client))
 		return false;
@@ -1380,8 +1386,11 @@ bool ThrowPlayerStatsToClient(int client, int targetID)
 			DrawPanelText(playerStatsMenu, stats);
 			F_OnPlayerStatsOpened(playerStatsMenu, client, targetID);
 			SendPanelToClient(playerStatsMenu, client, Clan_PlayerStatsMenu, 0);
-			g_asClientLastMenu[client].Push(MDINT(MD_ThrowPlayerStatsToClient));
-			g_asMClientBuffer[client].Push(targetID);
+			if(saveAsLastMenu)
+			{
+				g_asClientLastMenu[client].Push(MDINT(MD_ThrowPlayerStatsToClient));
+				g_asMClientBuffer[client].Push(targetID);
+			}
 			return true;
 		}
 	}
@@ -1403,8 +1412,11 @@ bool ThrowPlayerStatsToClient(int client, int targetID)
 									WHERE \
 										`player_id` = '%d'", targetID);
 	g_hClansDB.Query(DBM_PlayerStats, query, client);
-	g_asClientLastMenu[client].Push(MDINT(MD_ThrowPlayerStatsToClient));
-	g_asMClientBuffer[client].Push(targetID);
+	if(saveAsLastMenu)
+	{
+		g_asClientLastMenu[client].Push(MDINT(MD_ThrowPlayerStatsToClient));
+		g_asMClientBuffer[client].Push(targetID);
+	}
 	return true;
 }
 
@@ -1413,10 +1425,11 @@ bool ThrowPlayerStatsToClient(int client, int targetID)
  *
  * @param int client - player's id, who will see the stats
  * @param int clanid - clan's id, whose stats will be shown
+ * @param bool saveAsLastMenu - flag if menu should be added in player's stack of menus
  *
  * @return true - success, false - failed
  */
-bool ThrowClanStatsToClient(int client, int clanid)
+bool ThrowClanStatsToClient(int client, int clanid, bool saveAsLastMenu = true)
 {
 	if(client < 1 || client > MaxClients || !IsClientInGame(client))
 		return false;
@@ -1440,8 +1453,11 @@ bool ThrowClanStatsToClient(int client, int clanid)
 	dp.WriteCell(clanid);
 	dp.Reset();
 	g_hClansDB.Query(DBM_ClanStats, query, dp);
-	g_asClientLastMenu[client].Push(MDINT(MD_ThrowClanStatsToClient));
-	g_asMClientBuffer[client].Push(clanid);
+	if(saveAsLastMenu)
+	{
+		g_asClientLastMenu[client].Push(MDINT(MD_ThrowClanStatsToClient));
+		g_asMClientBuffer[client].Push(clanid);
+	}
 	return true;
 }
 
@@ -1451,10 +1467,11 @@ bool ThrowClanStatsToClient(int client, int clanid)
  * @param int client - player's id, who will see members
  * @param int clanid - clan's id, whose members will be shown
  * @param int showFlags - flags to members to show: 1st bit - client will be shown in menu, 2nd bit - don't show clients whose role is above client's one, 3rd bit - don't show whose role is above or equals client's one
+ * @param bool saveAsLastMenu - flag if menu should be added in player's stack of menus
  *
  * @return true - success, false - failed
  */
-bool ThrowClanMembersToClient(int client, int clanid, int showFlags)
+bool ThrowClanMembersToClient(int client, int clanid, int showFlags, bool saveAsLastMenu = true)
 {
 	if(client < 1 || client > MaxClients || !IsClientInGame(client))
 		return false;
@@ -1475,13 +1492,13 @@ bool ThrowClanMembersToClient(int client, int clanid, int showFlags)
 	{
 		Format(query, sizeof(query), "%s AND `player_role` <= '%d'", query, GetClientRoleByID(ClanClient));
 	}
-	DataPack dp = CreateDataPack();
-	dp.WriteCell(client);
-	dp.WriteCell(clanid);
-	dp.Reset();
-	g_hClansDB.Query(DBM_ClanMembersListCallback, query, dp);
-	g_asClientLastMenu[client].Push(MDINT(MD_ThrowClanMembersToClient));
-	g_asMClientBuffer[client].Push(clanid | showFlags << 29);
+
+	g_hClansDB.Query(DBM_ClanMembersListCallback, query, client);
+	if(saveAsLastMenu)
+	{
+		g_asClientLastMenu[client].Push(MDINT(MD_ThrowClanMembersToClient));
+		g_asMClientBuffer[client].Push(clanid | showFlags << 29);
+	}
 	return true;
 }
 
@@ -1489,10 +1506,11 @@ bool ThrowClanMembersToClient(int client, int clanid, int showFlags)
  * Throws tops of clans menu to player
  *
  * @param int client - player's id, who will see tops of clans menu
+ * @param bool saveAsLastMenu - flag if menu should be added in player's stack of menus
  *
  * @return true - success, false - failed
  */
-bool ThrowTopsMenuToClient(int client)
+bool ThrowTopsMenuToClient(int client, bool saveAsLastMenu = true)
 {
 	if(client < 1 || client > MaxClients || !IsClientInGame(client))
 		return false;
@@ -1526,8 +1544,11 @@ bool ThrowTopsMenuToClient(int client)
 	else
 		SetMenuExitBackButton(topsMenu, true);
 	DisplayMenu(topsMenu, client, 0);
-	g_asClientLastMenu[client].Push(MDINT(MD_ThrowTopsMenuToClient));
-	g_asMClientBuffer[client].Push(NO_BUFF_DATA);
+	if(saveAsLastMenu)
+	{
+		g_asClientLastMenu[client].Push(MDINT(MD_ThrowTopsMenuToClient));
+		g_asMClientBuffer[client].Push(NO_BUFF_DATA);
+	}
 	return true;
 }
 
@@ -1581,10 +1602,11 @@ void ThrowTopClanInCategoryToClient(int client, int option)
  *
  * @param int client - player's id, who will see clans
  * @param bool showClientClan - flag if client's clan will be shown in menu
+ * @param bool saveAsLastMenu - flag if menu should be added in player's stack of menus
  *
  * @return true - success, false - failed
  */
-bool ThrowClansToClient(int client, bool showClientClan)
+bool ThrowClansToClient(int client, bool showClientClan, bool saveAsLastMenu = true)
 {
 	if(client < 1 || client > MaxClients || !IsClientInGame(client))
 		return false;
@@ -1595,8 +1617,11 @@ bool ThrowClansToClient(int client, bool showClientClan)
 		Format(query, sizeof(query), "%s WHERE `clan_id` != '%d'", query, g_iClientData[client][CLIENT_CLANID]);
 	}
 	g_hClansDB.Query(DBM_ClansListCallback, query, client);
-	g_asClientLastMenu[client].Push(MDINT(MD_ThrowClansToClient));
-	g_asMClientBuffer[client].Push(view_as<int>(showClientClan));
+	if(saveAsLastMenu)
+	{
+		g_asClientLastMenu[client].Push(MDINT(MD_ThrowClansToClient));
+		g_asMClientBuffer[client].Push(view_as<int>(showClientClan));
+	}
 	return true;
 }
 
@@ -1604,17 +1629,22 @@ bool ThrowClansToClient(int client, bool showClientClan)
  * Throws all clan clients to player
  *
  * @param int client - player's id, who will see clients
+ * @param bool saveAsLastMenu - flag if menu should be added in player's stack of menus
+ *
  * @return true - success, false - failed
  */
-bool ThrowClanClientsToClient(int client)
+bool ThrowClanClientsToClient(int client, bool saveAsLastMenu = true)
 {
 	if(client < 1 || client > MaxClients || !IsClientInGame(client))
 		return false;
 	char query[70];
 	FormatEx(query, sizeof(query), "SELECT `player_id`, `player_name` FROM `players_table`");
 	g_hClansDB.Query(DBM_ClanClientsListCallback, query, client);
-	g_asClientLastMenu[client].Push(MDINT(MD_ThrowClanClientsToClient));
-	g_asMClientBuffer[client].Push(NO_BUFF_DATA);
+	if(saveAsLastMenu)
+	{
+		g_asClientLastMenu[client].Push(MDINT(MD_ThrowClanClientsToClient));
+		g_asMClientBuffer[client].Push(NO_BUFF_DATA);
+	}
 	return true;
 }
 
@@ -1663,18 +1693,22 @@ bool ThrowInviteList(int client)
  * Throws clan control menu
  *
  * @param int client - player's id
+ * @param bool saveAsLastMenu - flag if menu should be added in player's stack of menus
  *
  * @return true - success, false - failed
  */
-bool ThrowClanControlMenu(int client)
+bool ThrowClanControlMenu(int client, bool saveAsLastMenu = true)
 {
 	if(client < 1 || client > MaxClients || !IsClientInGame(client))
 		return false;
 	char query[500];
 	FormatEx(query, sizeof(query), "SELECT `player_role` FROM `players_table` WHERE `player_id` = '%d'", ClanClient);
 	g_hClansDB.Query(DBM_ControlMenuCallback, query, client);
-	g_asClientLastMenu[client].Push(MDINT(MD_ThrowClanControlMenu));
-	g_asMClientBuffer[client].Push(NO_BUFF_DATA);
+	if(saveAsLastMenu)
+	{
+		g_asClientLastMenu[client].Push(MDINT(MD_ThrowClanControlMenu));
+		g_asMClientBuffer[client].Push(NO_BUFF_DATA);
+	}
 	return true;
 }
 
@@ -1767,10 +1801,11 @@ bool ThrowChangeRoleMenu(int client, int targetID)
  * Показ админ меню игроку
  *
  * @param int client - игрок, которому показываем админ меню
+ * @param bool saveAsLastMenu - flag if menu should be added in player's stack of menus
  *
  * @return true - успешно, false иначе
  */
-bool ThrowAdminMenu(int client)
+bool ThrowAdminMenu(int client, bool saveAsLastMenu = true)
 {
 	if(client < 1 || client > MaxClients)
 		return false;
@@ -1816,15 +1851,22 @@ bool ThrowAdminMenu(int client)
 	else
 		SetMenuExitBackButton(adminClansMenu, true);
 	DisplayMenu(adminClansMenu, client, 0);
-	g_asClientLastMenu[client].Push(MDINT(MD_ThrowAdminMenu));
-	g_asMClientBuffer[client].Push(NO_BUFF_DATA);
+	if(saveAsLastMenu)
+	{
+		g_asClientLastMenu[client].Push(MDINT(MD_ThrowAdminMenu));
+		g_asMClientBuffer[client].Push(NO_BUFF_DATA);
+	}
 	return true;
 }
 
 /**
  * Throws clan commands for players
+ *
+ * @param int client - client's index
+ * @param bool saveAsLastMenu - flag if menu should be added in player's stack of menus
+ *
  */
-void ThrowClanHelp(int client)
+void ThrowClanHelp(int client, bool saveAsLastMenu = true)
 {
 	if(client > 0 && client <= MaxClients)
 	{
@@ -1837,15 +1879,23 @@ void ThrowClanHelp(int client)
 		FormatEx(helpText, sizeof(helpText), "%T", "m_Close", client);
 		DrawPanelItem(helpPanel, helpText, 0);
 		SendPanelToClient(helpPanel, client, Clan_HelpMenu, 0);
-		g_asClientLastMenu[client].Push(MDINT(MD_ThrowClanHelp));
-		g_asMClientBuffer[client].Push(NO_BUFF_DATA);
+		if(saveAsLastMenu)
+		{
+			g_asClientLastMenu[client].Push(MDINT(MD_ThrowClanHelp));
+			g_asMClientBuffer[client].Push(NO_BUFF_DATA);
+		}
 	}
 }
 
 /**
  * Throws clan tag setting menu to client
+ *
+ * @param int client - client's index
+ * @param bool saveAsLastMenu - flag if menu should be added in player's stack of menus
+ *
+ * @noreturn
  */
-void ThrowClanTagSettings(int client)
+void ThrowClanTagSettings(int client, bool saveAsLastMenu = true)
 {
 	if(!IsClientInGame(client))
 		return;
@@ -1864,8 +1914,11 @@ void ThrowClanTagSettings(int client)
 	AddMenuItem(clanTagSetMenu, "No", sBuff);
 	SetMenuExitBackButton(clanTagSetMenu, true);
 	DisplayMenu(clanTagSetMenu, client, 0);
-	g_asClientLastMenu[client].Push(MDINT(MD_ThrowClanTagSettings));
-	g_asMClientBuffer[client].Push(NO_BUFF_DATA);
+	if(saveAsLastMenu)
+	{
+		g_asClientLastMenu[client].Push(MDINT(MD_ThrowClanTagSettings));
+		g_asMClientBuffer[client].Push(NO_BUFF_DATA);
+	}
 }
 
 /**
@@ -1968,7 +2021,7 @@ void ThrowLastMenu(int iClient, bool bActualMenu = false)
 /**
  * Показ списка участников клана игроку
  */
-void DBM_ClanMembersListCallback(Handle owner, Handle hndl, const char[] error, DataPack dp)
+void DBM_ClanMembersListCallback(Handle owner, Handle hndl, const char[] error, int client)
 {
 	if(hndl == INVALID_HANDLE)
 	{
@@ -1976,8 +2029,6 @@ void DBM_ClanMembersListCallback(Handle owner, Handle hndl, const char[] error, 
 	}
 	else
 	{
-		int client = dp.ReadCell();
-		int clanid = dp.ReadCell();
 		if(SQL_FetchRow(hndl))
 		{
 			char playerName[MAX_NAME_LENGTH+5],
@@ -2013,14 +2064,13 @@ void DBM_ClanMembersListCallback(Handle owner, Handle hndl, const char[] error, 
 			char print_buff[BUFF_SIZE];
 			FormatEx(print_buff, sizeof(print_buff), "%T", "NoPlayers", client);
 			CPrintToChat(client, print_buff);
-			for(int i = 1; i <= MaxClients; ++i)
+			/*for(int i = 1; i <= MaxClients; ++i)
 			{
 				if(IsClientInGame(i) && g_iClientData[i][CLIENT_CLANID] == clanid)
 					ClearClientData(i);
-			}
+			}*/
 		}
 	}
-	delete dp;
 }
 
 /**
@@ -2379,6 +2429,7 @@ void DBM_ControlMenuCallback(Handle owner, Handle hndl, const char[] error, int 
 				FormatEx(print_buff, sizeof(print_buff), "%T", "m_Disband", client);
 				AddMenuItem(clanControlMenu, "DeleteClan", print_buff);
 			}
+			F_OnClanControlMenuOpened(clanControlMenu, client);		//v1.88
 			SetMenuExitBackButton(clanControlMenu, true);
 			DisplayMenu(clanControlMenu, client, 0);
 		}
