@@ -1,20 +1,24 @@
 //Forwards below
-GlobalForward	g_hACMOpened, 		//AdminClanMenuOpened
-				g_hACMSelected,		//AdminClanMenuSelected
-				g_hCMOpened, 		//ClanMenuOpened
-				g_hCMSelected,		//ClanMenuSelected
-				g_hCSOpened, 		//ClanStatsOpened
-				g_hPSOpened, 		//PlayerStatsOpened
-				g_hClanAdded,		//ClansAdded
-				g_hClanDeleted,		//ClansDeleted
-				g_hClientAdded,		//ClientAdded
-				g_hClientDeleted,	//ClientDeleted
-				g_hClanSelectedInList,	//Clans_OnClanSelectedInList	1.8v
-				g_hClanMemberSelectedInList,	//Clans_OnClanMemberSelectedInList	1.8v NOT DONE
-				g_hOnClanCoinsGive,		//Clans_OnClanCoinsGive	1.8v
-				g_hOnClanClientLoaded,	//Clans_OnClientLoaded 1.83v
-				g_hOnTopOpened,			//Clans_OnTopMenuOpened	v1.87
-				g_hOnTopSelected;		//Clans_OnTopMenuSelected
+GlobalForward	g_hACMOpened, 				//Clans_OnAdminClanMenuOpened
+				g_hACMSelected,				//Clans_OnAdminClanMenuSelected
+				g_hCMOpened, 				//Clans_OnClanMenuOpened
+				g_hCMSelected,				//Clans_OnClanMenuSelected
+				g_hCSOpened, 				//Clans_OnClanStatsOpened
+				g_hPSOpened, 				//Clans_OnPlayerStatsOpened
+				g_hClanAdded,				//Clans_OnClanAdded
+				g_hClanDeleted,				//Clans_OnClanDeleted
+				g_hClientAdded,				//Clans_OnClientAdded
+				g_hOnClanClientLoaded,		//Clans_OnClientLoaded v1.83
+				g_hClientDeleted,			//Clans_OnClientDeleted
+				g_hClanSelectedInList,		//Clans_OnClanSelectedInList	v1.8
+				g_hOnClanCoinsGive,			//Clans_OnClanCoinsGive	v1.8
+				g_hOnTopOpened,				//Clans_OnTopMenuOpened	v1.87
+				g_hOnTopSelected,			//Clans_OnTopMenuSelected
+				g_hOnClanControlOpened,		//Clans_OnClanControlMenuOpened	v1.88
+				g_hOnClanControlSelected,	//Clans_OnClanControlMenuSelected v1.88
+				g_hPreClanCreate,			//Clans_PreClanCreate v1.88
+				g_hPreClanRename,			//Clans_PreClanRename v1.88
+				g_hApproveHandle;			//Clans_ApproveHandle v1.88
 
 void CreateForwards()
 {
@@ -33,6 +37,12 @@ void CreateForwards()
 	g_hOnClanClientLoaded = CreateGlobalForward("Clans_OnClientLoaded", ET_Ignore, Param_Cell, Param_Cell, Param_Cell);
 	g_hOnTopOpened = CreateGlobalForward("Clans_OnTopMenuOpened", ET_Ignore, Param_Any, Param_Cell);
 	g_hOnTopSelected = CreateGlobalForward("Clans_OnTopMenuSelected", ET_Ignore, Param_Any, Param_Cell, Param_Cell);
+	//v1.88 below
+	g_hOnClanControlOpened = CreateGlobalForward("Clans_OnClanControlMenuOpened", ET_Ignore, Param_Any, Param_Cell);						//v1.88
+	g_hOnClanControlSelected = CreateGlobalForward("Clans_OnClanControlMenuSelected", ET_Ignore, Param_Any, Param_Cell, Param_Cell);		//v1.88
+	g_hPreClanCreate = CreateGlobalForward("Clans_PreClanCreate", ET_Hook, Param_Cell, Param_String, Param_Cell);							//v1.88
+	g_hPreClanRename = CreateGlobalForward("Clans_PreClanRename", ET_Hook, Param_Cell, Param_String, Param_String, Param_Cell);				//v1.88
+	g_hApproveHandle = CreateGlobalForward("Clans_ApproveHandle", ET_Hook, Param_Cell);
 }
 
 /**
@@ -297,4 +307,88 @@ void F_OnTopMenuSelected(Handle topMenu, int iClient, int iOption)
 	Call_PushCell(iClient);
 	Call_PushCell(iOption);
 	Call_Finish();
+}
+
+/**
+ * Starts Clans_OnClanControlMenuOpened forward
+ *
+ * @param Handle clanControlMenu - clan control menu handle
+ * @param int iClient - client's index
+ */
+void F_OnClanControlMenuOpened(Handle clanControlMenu, int iClient)
+{
+	Call_StartForward(g_hOnClanControlOpened);
+	Call_PushCell(clanControlMenu);
+	Call_PushCell(iClient);
+	Call_Finish();
+}
+
+/**
+ * Starts Clans_OnClanControlMenuSelected forward
+ *
+ * @param Handle clanControlMenu - clan control menu handle
+ * @param int iClient - client's index
+ * @param int iOption - selected option
+ */
+void F_OnClanControlMenuSelected(Handle clanControlMenu, int iClient, int iOption)
+{
+	Call_StartForward(g_hOnClanControlSelected);
+	Call_PushCell(clanControlMenu);
+	Call_PushCell(iClient);
+	Call_PushCell(iOption);
+	Call_Finish();
+}
+
+/**
+ * Starts Clans_PreClanCreate forward
+ *
+ * @param int iLeader - leader's index
+ * @param const char[] clanName - clan's name
+ * @param int iCreator - creator's index (if leader create it by himself/herself createdBy is -1)
+ */
+bool F_PreClanCreate(int iLeader, const char[] clanName, int iCreator)
+{
+	Action aCreate = Plugin_Continue;
+	Call_StartForward(g_hPreClanCreate);
+	Call_PushCell(iLeader);
+	Call_PushString(clanName);
+	Call_PushCell(iCreator);
+	Call_Finish(aCreate);
+	return aCreate == Plugin_Continue;
+}
+
+/**
+ * Starts Clans_PreClanCreate forward
+ *
+ * @param int iClanId - clan's index
+ * @param const char[] oldClanName - old clan's name
+ * @param const char[] newClanName - new clan's name
+ * @param int iWhoRename - index of the one who rename the clan
+ */
+bool F_PreClanRename(int iClanId, const char[] oldClanName, const char[] newClanName, int iWhoRename)
+{
+	Action aRename = Plugin_Continue;
+	Call_StartForward(g_hPreClanRename);
+	Call_PushCell(iClanId);
+	Call_PushString(oldClanName);
+	Call_PushString(newClanName);
+	Call_PushCell(iWhoRename);
+	Call_Finish(aRename);
+	return aRename == Plugin_Continue;
+}
+
+/**
+ * Sends approve request for handle (Clans_ApproveHandle)
+ *
+ * @param Handle hPlugin - handle of the plugin to be approved
+ * 
+ * @return true on approved, false otherwise
+ */
+bool F_ApproveHandle(Handle hPlugin)
+{
+	bool bApprove = false;
+	Call_StartForward(g_hApproveHandle);
+	Call_PushCell(hPlugin);
+	Call_Finish(bApprove);
+	return bApprove;
 }

@@ -26,6 +26,9 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 	CreateNative("Clans_GetClientClanName", Native_GetClientClanName);
 	CreateNative("Clans_GetClanMembersOnline", Native_GetClanMembersOnline);
 	CreateNative("Clans_ResetClient", Native_ResetClient);
+	//CLIENTS v1.88
+	CreateNative("Clans_GetClientDataFromDB", Native_GetClientDataFromDB);
+	CreateNative("Clans_GetClientData", Native_GetClientData);
 	//Clans
 	CreateNative("Clans_IsClanValid", Native_IsClanValid);
 	CreateNative("Clans_GetClanName", Native_GetClanName);
@@ -51,6 +54,9 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 	CreateNative("Clans_GetClanDatabase", Native_GetClanDatabase);
 	CreateNative("Clans_IsMySQLDatabase", Native_IsMySQLDatabase);
 	CreateNative("Clans_AreClansLoaded", Native_AreClansLoaded);
+	CreateNative("Clans_ShowClientMenu", Native_ShowClientMenu);					//v1.88
+	CreateNative("Clans_RegClanControlOption", Native_RegClanControlOption);		//v1.88
+	CreateNative("Clans_RemoveClanControlOption", Native_RemoveClanControlOption);	//v1.88
 	//Forwards
 	CreateForwards();
 	RegPluginLibrary("ClanSystem_DreaM");
@@ -283,6 +289,141 @@ public int Native_ResetClient(Handle plugin, int iParams)
 	ResetClient(iClientID);
 	return 0;
 }
+
+public int Native_GetClientDataFromDB(Handle plugin, int iParams)	//v1.88
+{
+	int iClientDB = GetNativeCell(1);
+	Clans_ClientStatsType type = GetNativeCell(2);
+	switch(type)
+	{
+		case CCST_USETAG:
+		{
+			for(int i = 1; i <= MaxClients; ++i)
+			{
+				if(IsClientInGame(i) && playerID[i] == iClientDB)
+				{
+					return WantToChangeTag(i);
+				}
+			}
+			return 0;
+		}
+		case CCST_ID:	// Странно запрашивать ид в базе через ид в базе, но ладно, пусть будет
+		{
+			return iClientDB;
+		}
+		case CCST_ROLE:
+		{
+			return GetClientRoleByID(iClientDB);
+		}
+		case CCST_CLANID:
+		{
+			return GetClientClanByID(iClientDB);
+		}
+		case CCST_KILLS:
+		{
+			return GetClientKillsInClanByID(iClientDB);
+		}
+		case CCST_DEATHS:
+		{
+			return GetClientDeathsInClanByID(iClientDB);
+		}
+		case CCST_PERMTOCREATE:
+		{
+			for(int i = 1; i <= MaxClients; ++i)
+			{
+				if(IsClientInGame(i) && playerID[i] == iClientDB)
+					return createClan[i];
+			}
+			return 0;
+		}
+		case CCST_TIMEINCLAN:
+		{
+			return GetTime() - GetClientTimeInClanByID(iClientDB);
+		}
+		case CCST_TIMETOCREATE:
+		{
+			for(int i = 1; i <= MaxClients; ++i)
+			{
+				if(IsClientInGame(i) && playerID[i] == iClientDB)
+				{
+					int iTimeOfCD = GetTime() - GetLastClanCreationTime(i);
+					return g_iClanCreationCD-iTimeOfCD/60;
+				}
+			}
+			return 0;
+		}
+	}
+	return 0;
+}
+public int Native_GetClientData(Handle plugin, int iParams)	//v1.88
+{
+	int iClient = GetNativeCell(1);
+	Clans_ClientStatsType type = GetNativeCell(2);
+	if(iClient < 0 || iClient > MaxClients || !IsClientInGame(iClient))
+		return ThrowNativeError(SP_ERROR_NATIVE, "Client is offline!");
+
+	switch(type)
+	{
+		case CCST_USETAG:
+		{
+			return WantToChangeTag(iClient);
+		}
+		case CCST_ID:
+		{
+			return playerID[iClient];
+		}
+		case CCST_ROLE:
+		{
+			return g_iClientData[iClient][CLIENT_ROLE];
+		}
+		case CCST_CLANID:
+		{
+			return g_iClientData[iClient][CLIENT_CLANID];
+		}
+		case CCST_KILLS:
+		{
+			return g_iClientData[iClient][CLIENT_KILLS]+g_iClientDiffData[iClient][CD_DIFF_KILLS] > 0 ? g_iClientData[iClient][CLIENT_KILLS]+g_iClientDiffData[iClient][CD_DIFF_KILLS] : 0;
+		}
+		case CCST_DEATHS:
+		{
+			return g_iClientData[iClient][CLIENT_DEATHS]+g_iClientDiffData[iClient][CD_DIFF_DEATHS] >= 0 ? g_iClientData[iClient][CLIENT_DEATHS]+g_iClientDiffData[iClient][CD_DIFF_DEATHS] : 0;
+		}
+		case CCST_PERMTOCREATE:
+		{
+			return createClan[iClient];
+		}
+		case CCST_TIMEINCLAN:
+		{
+			return GetTime() - g_iClientData[iClient][CLIENT_TIME];
+		}
+		case CCST_TIMETOCREATE:
+		{
+			int iTimeOfCD = GetTime() - GetLastClanCreationTime(iClient);
+			return g_iClanCreationCD-iTimeOfCD/60;
+		}
+	}
+	return -1;
+}
+
+public any Native_RegClanControlOption(Handle plugin, int numParams)
+{
+	int iRole = GetNativeCell(1);
+	if(iRole > 3)
+		iRole = 3;
+	else if(iRole < 0)
+		iRole = 0;
+	return RegisterExtraOptionForClanControl(iRole, plugin);
+}
+
+public any Native_RemoveClanControlOption(Handle plugin, int numParams)
+{
+	int iRole = GetNativeCell(1);
+	if(iRole > 3)
+		iRole = 3;
+	else if(iRole < 0)
+		iRole = 0;
+	return RemoveClanControlOption(iRole, plugin);
+}
   //=============================== CLANS ===============================//
 public any Native_IsClanValid(Handle plugin, int numParams)
 {
@@ -449,4 +590,71 @@ public any Native_IsMySQLDatabase(Handle plugin, int numParams)
 public any Native_AreClansLoaded(Handle plugin, int numParams)
 {
 	return g_bClansLoaded;
+}
+
+
+public any Native_ShowClientMenu(Handle plugin, int numParams)
+{
+	int iClient = GetNativeCell(1);
+	Clan_MenuType menuType = GetNativeCell(2);
+	int param1 = GetNativeCell(3);
+	int param2 = GetNativeCell(4);
+	bool saveAsLastMenu = GetNativeCell(5);
+	
+	if(iClient < 0 || iClient > MaxClients || !IsClientInGame(iClient))
+		return ThrowNativeError(SP_ERROR_NATIVE, "Client is offline!");
+
+	switch(menuType)
+	{
+		case CM_Main:
+		{
+			ThrowClanMenuToClient(iClient, saveAsLastMenu);
+		}
+		case CM_Control:
+		{
+			ThrowClanControlMenu(iClient, saveAsLastMenu);
+		}
+		case CM_PlayerStats:
+		{
+			int iTargetID = param1;
+			ThrowPlayerStatsToClient(iClient, iTargetID, saveAsLastMenu);
+		}
+		case CM_ClanStats:
+		{
+			int iClanId = param1;
+			ThrowClanStatsToClient(iClient, iClanId, saveAsLastMenu);
+		}
+		case CM_ClanMembers:
+		{
+			int iClanId = param1;
+			int iFlags = param2;
+			ThrowClanMembersToClient(iClient, iClanId, iFlags, saveAsLastMenu);
+		}
+		case CM_Top:
+		{
+			ThrowTopsMenuToClient(iClient, saveAsLastMenu);
+		}
+		case CM_ClansList:
+		{
+			bool bShowClientClan = view_as<bool>(param1);
+			ThrowClansToClient(iClient, bShowClientClan, saveAsLastMenu);
+		}
+		case CM_AllClanClients:
+		{
+			ThrowClanClientsToClient(iClient, saveAsLastMenu);
+		}
+		case CM_Admin:
+		{
+			ThrowAdminMenu(iClient, saveAsLastMenu);
+		}
+		case CM_ClanHelp:
+		{
+			ThrowClanHelp(iClient, saveAsLastMenu);
+		}
+		case CM_TagSettings:
+		{
+			ThrowClanTagSettings(iClient, saveAsLastMenu);
+		}
+	}
+	return 0;
 }

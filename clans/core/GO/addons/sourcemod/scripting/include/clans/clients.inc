@@ -1,4 +1,22 @@
 /**
+ * Get client's data (integers/bools)
+ *
+ * @param int iClientDB - client's id in database
+ * @param Clans_ClientStatsType type - type of data
+ * 
+ */
+native int Clans_GetClientDataFromDB(int iClientDB, Clans_ClientStatsType type);
+
+/**
+ * Get ONLINE client's data (integers/bools)
+ *
+ * @param int iClientDB - client's index
+ * @param Clans_ClientStatsType type - type of data
+ * 
+ */
+native int Clans_GetClientData(int iClient, Clans_ClientStatsType type);
+
+/**
  * Create a clan client with data
  *
  * @param		char[] name - client's name
@@ -21,7 +39,7 @@ native bool Clans_UseClanTag(int client);
  * Get client's id in database
  *
  * @param		client - client's index
- * @return		client's id in database
+ * @return		client's id in database. Returns -1 if player isn't loaded or in any clan
  */
 native int Clans_GetClientID(int client);
 
@@ -222,3 +240,16 @@ native void Clans_ResetClient(int iClientID);
  * @noreturn
  */
 native void Clans_ShowTopMenu(int iClient);
+
+/**
+ * Shows a menu to client
+ *
+ * @param int iClient - who will see the menu
+ * @param Clan_MenuType menuType - type of the menu
+ * @param int param1 - depending on menu
+ * @param int param2 - depending on menu
+ * @param bool saveAsLastMenu - if true, menu will be added in stack of menus (client can return from next menus)
+ * 
+ * @noreturn
+ */
+native void Clans_ShowClientMenu(int iClient, Clan_MenuType menuType, int param1 = -1, int param2 = -1, bool saveAsLastMenu = true);

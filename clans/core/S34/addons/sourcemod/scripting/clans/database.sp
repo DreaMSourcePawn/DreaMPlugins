@@ -51,7 +51,7 @@ void Upgrade1()
 	char query[200];
 	FormatEx(query, sizeof(query), "SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'players_table' AND COLUMN_NAME = 'player_isleader';");
 	DBResultSet hQuery = SQL_Query(g_hClansDB, query, sizeof(query));
-	if(hQuery == null)
+	if(hQuery == INVALID_HANDLE)
 	{
 		char error[255];
 		SQL_GetError(g_hClansDB, error, sizeof(error));
@@ -175,8 +175,8 @@ void DB_CreateClan(int leaderid, char[] clanName, int createBy = -1)
 			leaderAuth[33];					//Аутентификатор лидера
 	DataPack data = CreateDataPack();		//Пак данных: айди лидера, его ник и аутентификатор, название клана и айди того, кто создает
 			
-	if(createBy == -1)
-		createBy = leaderid;
+	/*if(createBy == -1)
+		createBy = leaderid;*/
 	GetClientName(leaderid, leaderName, sizeof(leaderName));
 	if(USEAUTH2)
 		GetClientAuthId(leaderid, AuthId_Steam2, leaderAuth, sizeof(leaderAuth));
@@ -902,27 +902,6 @@ void DB_SetClientKills(int clientID, int kills)
 }
 
 /**
- * После запроса на получение айди клана, меняет число убийств в последнем
- *
- * @param int amountToAdd - на сколько изменить число убийств
- */
-void DB_ChangeClientKillsInClan(Handle owner, Handle hndl, const char[] error, int amountToAdd)
-{
-	if(hndl == INVALID_HANDLE)
-	{
-		LogError("[CLANS] Query Fail get client clan's id: %s;", error);
-	}
-	else
-	{
-		if(SQL_FetchRow(hndl))
-		{
-			int clanid = SQL_FetchInt(hndl, 0);
-			DB_ChangeClanKills(clanid, amountToAdd);
-		}
-	}
-}
-
-/**
  * Установка количества смертей игроку
  *
  * @param int clientID - айди игрока в базе
@@ -933,27 +912,6 @@ void DB_SetClientDeaths(int clientID, int deaths)
 	char query[150];
 	FormatEx(query, sizeof(query), "UPDATE `players_table` SET `player_deaths` = '%d' WHERE `player_id` = '%d'", deaths, clientID);
 	g_hClansDB.Query(DB_ClientError, query, 2);
-}
-
-/**
- * После запроса на получение айди клана, меняет число смертей в последнем
- *
- * @param int amountToAdd - на сколько изменить число смертей
- */
-void DB_ChangeClientDeathsInClan(Handle owner, Handle hndl, const char[] error, int amountToAdd)
-{
-	if(hndl == INVALID_HANDLE)
-	{
-		LogError("[CLANS] Query Fail get client clan's id: %s;", error);
-	}
-	else
-	{
-		if(SQL_FetchRow(hndl))
-		{
-			int clanid = SQL_FetchInt(hndl, 0);
-			DB_ChangeClanDeaths(clanid, amountToAdd);
-		}
-	}
 }
 
 /*

@@ -22,7 +22,10 @@ public Action Command_AddPlayerToClan(int client, int args)
 	if(args != 3)
 	{
 		FormatEx(print_buff, sizeof(print_buff), "%T", "c_WrongPToClan", client);
-		CPrintToChat(client, print_buff);
+		if(client)
+			CPrintToChat(client, print_buff);
+		else
+			PrintToServer("[CLANS] Incorrectly entered command! Tip: !ptoclan [userid in status] [clan id] [4 - leader, 2 - co-leader, 1 - elder, 0 - member]!");
 		return Plugin_Handled;
 	}
 	char buff[10],
@@ -37,31 +40,56 @@ public Action Command_AddPlayerToClan(int client, int args)
 	roleFlag = StringToInt(buff);
 	if(roleFlag < 0 || roleFlag > 4 || roleFlag == 3)
 	{
-		FormatEx(print_buff, sizeof(print_buff), "%T", "c_WrongRoleFlag", client);
-		CPrintToChat(client, print_buff);
+		if(client)
+		{
+			FormatEx(print_buff, sizeof(print_buff), "%T", "c_WrongRoleFlag", client);
+			CPrintToChat(client, print_buff);
+		}
+		else
+			PrintToServer("[CLANS] Wrong role flag inputted!");
 		return Plugin_Handled;
 	}
 	if(GetClanMembers(clanid) < 1)
 	{
-		FormatEx(print_buff, sizeof(print_buff), "%T", "c_ClanDoesntExist", client);
-		CPrintToChat(client, print_buff);
+		if(client)
+		{
+			FormatEx(print_buff, sizeof(print_buff), "%T", "c_ClanDoesntExist", client);
+			CPrintToChat(client, print_buff);
+		}
+		else
+			PrintToServer("[CLANS] Clan doesn't exist!");
 		return Plugin_Handled;
 	}
 	if(!target || !IsClientAuthorized(target))
 	{
-		FormatEx(print_buff, sizeof(print_buff), "%T", "c_PlayerIsntAuth", client);
-		CPrintToChat(client, print_buff);
+		if(client)
+		{
+			FormatEx(print_buff, sizeof(print_buff), "%T", "c_PlayerIsntAuth", client);
+			CPrintToChat(client, print_buff);
+		}
+		else
+			PrintToServer("[CLANS] Player isn't authorized!");
 		return Plugin_Handled;
 	}
 	if(GetClientClanByID(GetClientIDinDB(target)) == clanid)
 	{
-		FormatEx(print_buff, sizeof(print_buff), "%T", "c_PlayerInThisClan", client);
-		CPrintToChat(client, print_buff);
+		if(client)
+		{
+			FormatEx(print_buff, sizeof(print_buff), "%T", "c_PlayerInThisClan", client);
+			CPrintToChat(client, print_buff);
+		}
+		else
+			PrintToServer("[CLANS] Player is already in this clan!");
 		return Plugin_Handled;
 	}
 	SetOnlineClientClan(target, clanid, roleFlag);
-	FormatEx(print_buff, sizeof(print_buff), "%T", "c_PlayerAddedToClan", client, clanName);
-	CPrintToChat(client, print_buff);
+	if(client)
+	{
+		FormatEx(print_buff, sizeof(print_buff), "%T", "c_PlayerAddedToClan", client, clanName);
+		CPrintToChat(client, print_buff);
+	}
+	else
+		PrintToServer("[CLANS] Player was added to clan %s", clanName);
 	if(CheckForLog(LOG_CLIENTACTION))
 	{
 		char log_buff[LOG_SIZE], 
@@ -83,8 +111,13 @@ public Action Command_RemovePlayerFromClan(int client, int args)
 	char print_buff[BUFF_SIZE];
 	if(args != 1)
 	{
-		FormatEx(print_buff, sizeof(print_buff), "%T", "c_WrongPOutOfClan", client);
-		CPrintToChat(client, print_buff);
+		if(client)
+		{
+			FormatEx(print_buff, sizeof(print_buff), "%T", "c_WrongPOutOfClan", client);
+			CPrintToChat(client, print_buff);
+		}
+		else
+			PrintToServer("[CLANS] Incorrectly entered command! Tip: !poutofclan [player ID in database or his steam]");
 		return Plugin_Handled;
 	}
 	char buff[33],
@@ -97,8 +130,13 @@ public Action Command_RemovePlayerFromClan(int client, int args)
 		clientID = StringToInt(buff);
 		if(clientID == -1)
 		{
-			FormatEx(print_buff, sizeof(print_buff), "%T", "c_PlayerIDDoesntExist", client);
-			CPrintToChat(client, print_buff);
+			if(client)
+			{
+				FormatEx(print_buff, sizeof(print_buff), "%T", "c_PlayerIDDoesntExist", client);
+				CPrintToChat(client, print_buff);
+			}
+			else
+				PrintToServer("[CLANS] Player with this ID wasn't found!");
 			return Plugin_Handled;
 		}
 		GetClientNameByID(clientID, targetName, sizeof(targetName));
@@ -117,8 +155,15 @@ public Action Command_RemovePlayerFromClan(int client, int args)
 			DB_LogAction(client, false, GetClientClanByID(ClanClient), log_buff, clientID, true, clanid, LOG_CLIENTACTION);
 		}
 		DeleteClientByID(clientID);
-		FormatEx(print_buff, sizeof(print_buff), "%T", "c_PlayerDelete", client, buff);
-		CPrintToChat(client, print_buff);
+		if(client)
+		{
+			FormatEx(print_buff, sizeof(print_buff), "%T", "c_PlayerDelete", client, targetName);
+			CPrintToChat(client, print_buff);
+		}
+		else
+		{
+			PrintToServer("[CLANS] Player %s was deleted!", targetName);
+		}
 	}
 	else
 	{
@@ -137,13 +182,25 @@ public Action Command_RemovePlayerFromClan(int client, int args)
 			}
 			DeleteClientByID(clientID);
 			IntToString(clientID, buff, sizeof(buff));
-			FormatEx(print_buff, sizeof(print_buff), "%T", "c_PlayerDelete", client, buff);
-			CPrintToChat(client, print_buff);
+			if(client)
+			{
+				FormatEx(print_buff, sizeof(print_buff), "%T", "c_PlayerDelete", client, targetName);
+				CPrintToChat(client, print_buff);
+			}
+			else
+			{
+				PrintToServer("[CLANS] Player %s was deleted!", targetName);
+			}
 		}
 		else
 		{
-			FormatEx(print_buff, sizeof(print_buff), "%T", "c_PlayerSteamDoesntExist", client);
-			CPrintToChat(client, print_buff);
+			if(client)
+			{
+				FormatEx(print_buff, sizeof(print_buff), "%T", "c_PlayerSteamDoesntExist", client);
+				CPrintToChat(client, print_buff);
+			}
+			else
+				PrintToServer("[CLANS] Player with this Steam ID wasn't found!");
 			return Plugin_Handled;
 		}
 	}
@@ -160,8 +217,13 @@ public Action Command_AdminDeleteClan(int client, int args)
 	char print_buff[BUFF_SIZE];
 	if(args != 1)
 	{
-		FormatEx(print_buff, sizeof(print_buff), "%T", "c_Wrongadclan", client);
-		CPrintToChat(client, print_buff);
+		if(client)
+		{
+			FormatEx(print_buff, sizeof(print_buff), "%T", "c_Wrongadclan", client);
+			CPrintToChat(client, print_buff);
+		}
+		else
+			PrintToServer("[CLANS] Incorrectly entered command! Tip: !adclan [clan id]");
 		return Plugin_Handled;
 	}
 	char buff[33];
@@ -170,8 +232,13 @@ public Action Command_AdminDeleteClan(int client, int args)
 	clanid = StringToInt(buff);
 	if(!IsClanValid(clanid))
 	{
-		FormatEx(print_buff, sizeof(print_buff), "%T", "c_ClanDoesntExist", client);
-		CPrintToChat(client, print_buff);
+		if(client)
+		{
+			FormatEx(print_buff, sizeof(print_buff), "%T", "c_ClanDoesntExist", client);
+			CPrintToChat(client, print_buff);
+		}
+		else
+			PrintToServer("[CLANS] Clan doesn't exist!");
 		return Plugin_Handled;
 	}
 	if(CheckForLog(LOG_CLANACTION))
@@ -183,8 +250,13 @@ public Action Command_AdminDeleteClan(int client, int args)
 		DB_LogAction(client, false, GetClientClanByID(ClanClient), log_buff, -1, true, clanid, LOG_CLANACTION);
 	}
 	DeleteClan(clanid);
-	FormatEx(print_buff, sizeof(print_buff), "%T", "c_ClanDelete", client, clanid);
-	CPrintToChat(client, print_buff);
+	if(client)
+	{
+		FormatEx(print_buff, sizeof(print_buff), "%T", "c_ClanDelete", client, clanid);
+		CPrintToChat(client, print_buff);
+	}
+	else
+		PrintToServer("[CLANS] Clan with id %d was deleted", clanid);
 	return Plugin_Handled;
 }
 
@@ -205,8 +277,13 @@ public Action Command_AdminSetCoins(int client, int args)
 	char print_buff[BUFF_SIZE];
 	if(args != 2)
 	{
-		FormatEx(print_buff, sizeof(print_buff), "%T", "c_Wrongasetcoins", client);
-		CPrintToChat(client, print_buff);
+		if(client)
+		{
+			FormatEx(print_buff, sizeof(print_buff), "%T", "c_Wrongasetcoins", client);
+			CPrintToChat(client, print_buff);
+		}
+		else
+			PrintToServer("[CLANS] Incorrectly entered command! Tip: !asetcoins [clan id] [amount of coins]");
 		return Plugin_Handled;
 	}
 	char buff[33],
@@ -217,8 +294,13 @@ public Action Command_AdminSetCoins(int client, int args)
 	clanid = StringToInt(buff);
 	if(!IsClanValid(clanid))
 	{
-		FormatEx(print_buff, sizeof(print_buff), "%T", "c_ClanDoesntExist", client);
-		CPrintToChat(client, print_buff);
+		if(client)
+		{
+			FormatEx(print_buff, sizeof(print_buff), "%T", "c_ClanDoesntExist", client);
+			CPrintToChat(client, print_buff);
+		}
+		else
+			PrintToServer("[CLANS] Clan doesn't exist!");
 		return Plugin_Handled;
 	}
 	GetClanName(clanid, clanName, sizeof(clanName));
@@ -232,11 +314,13 @@ public Action Command_AdminSetCoins(int client, int args)
 	coins = StringToInt(buff);
 	if(type == 0)
 	{
-		SetClanCoins(clanid, GetClanCoins(clanid) - coins);
+		int takenCoins = coins;
+		coins = GetClanCoins(clanid) - coins;
+		SetClanCoins(clanid, coins);
 		if(CheckForLog(LOG_COINS))
 		{
 			char log_buff[LOG_SIZE];
-			FormatEx(log_buff, sizeof(log_buff), "%T", "L_TakeCoins", LANG_SERVER, coins, clanName);
+			FormatEx(log_buff, sizeof(log_buff), "%T", "L_TakeCoins", LANG_SERVER, takenCoins, clanName);
 			DB_LogAction(client, false, GetClientClanByID(ClanClient), log_buff, -1, true, clanid, LOG_COINS);
 		}
 	}
@@ -252,16 +336,23 @@ public Action Command_AdminSetCoins(int client, int args)
 	}
 	else
 	{
-		SetClanCoins(clanid, GetClanCoins(clanid) + coins);
+		int givenCoins = coins;
+		coins += GetClanCoins(clanid);
+		SetClanCoins(clanid, coins);
 		if(CheckForLog(LOG_COINS))
 		{
 			char log_buff[LOG_SIZE];
-			FormatEx(log_buff, sizeof(log_buff), "%T", "L_GiveCoins", LANG_SERVER, coins, clanName);
+			FormatEx(log_buff, sizeof(log_buff), "%T", "L_GiveCoins", LANG_SERVER, givenCoins, clanName);
 			DB_LogAction(client, false, GetClientClanByID(ClanClient), log_buff, -1, true, clanid, LOG_COINS);
 		}
 	}
-	FormatEx(print_buff, sizeof(print_buff), "%T", "c_CoinsNow", client, clanName, GetClanCoins(clanid));
-	CPrintToChat(client, print_buff);
+	if(client)
+	{
+		FormatEx(print_buff, sizeof(print_buff), "%T", "c_CoinsNow", client, clanName, coins);
+		CPrintToChat(client, print_buff);
+	}
+	else
+		PrintToServer("[CLANS] Clan %s has %d coins now", clanName, coins);
 	return Plugin_Handled;
 }
 
@@ -273,8 +364,13 @@ public Action Command_AdminResetClan(int client, int args)
 	char print_buff[BUFF_SIZE];
 	if(args != 1)
 	{
-		FormatEx(print_buff, sizeof(print_buff), "%T", "c_Wrongarclan", client);
-		CPrintToChat(client, print_buff);
+		if(client)
+		{
+			FormatEx(print_buff, sizeof(print_buff), "%T", "c_Wrongarclan", client);
+			CPrintToChat(client, print_buff);
+		}
+		else
+			PrintToServer("[CLANS] Incorrectly entered command! Tip: !arclan [clan id]");
 		return Plugin_Handled;
 	}
 	char buff[33],
@@ -284,15 +380,26 @@ public Action Command_AdminResetClan(int client, int args)
 	clanid = StringToInt(buff);
 	if(!IsClanValid(clanid))
 	{
-		FormatEx(print_buff, sizeof(print_buff), "%T", "c_ClanDoesntExist", client);
-		CPrintToChat(client, print_buff);
+		if(client)
+		{
+			FormatEx(print_buff, sizeof(print_buff), "%T", "c_ClanDoesntExist", client);
+			CPrintToChat(client, print_buff);
+		}
+		else
+			PrintToServer("[CLANS] Clan doesn't exist!");
 		return Plugin_Handled;
 	}
 	if(ResetClan(clanid))
 	{
 		GetClanName(clanid, clanName, sizeof(clanName));
-		FormatEx(print_buff, sizeof(print_buff), "%T", "c_ClanReset", client, clanName);
-		CPrintToChat(client, print_buff);
+		if(client)
+		{
+			FormatEx(print_buff, sizeof(print_buff), "%T", "c_ClanReset", client, clanName);
+			CPrintToChat(client, print_buff);
+		}
+		else
+			PrintToServer("[CLANS] Clan %s was reseted", clanName);
+
 		if(CheckForLog(LOG_CLANACTION))
 		{
 			char log_buff[LOG_SIZE];
@@ -311,8 +418,13 @@ public Action Command_AdminResetClient(int client, int args)
 	char print_buff[BUFF_SIZE];
 	if(args != 1)
 	{
-		FormatEx(print_buff, sizeof(print_buff), "%T", "c_Wrongarclient", client);
-		CPrintToChat(client, print_buff);
+		if(client)
+		{
+			FormatEx(print_buff, sizeof(print_buff), "%T", "c_Wrongarclient", client);
+			CPrintToChat(client, print_buff);
+		}
+		else
+			PrintToServer("[CLANS] Incorrectly entered command! Tip: !arclient [player id in database or his SteamID]");
 		return Plugin_Handled;
 	}
 	char buff[33],
@@ -324,8 +436,14 @@ public Action Command_AdminResetClient(int client, int args)
 		clientID = StringToInt(buff);
 		GetClientNameByID(clientID, targetName, sizeof(targetName));
 		ResetClient(clientID);
-		FormatEx(print_buff, sizeof(print_buff), "%T", "c_PlayerReset", client, targetName);
-		CPrintToChat(client, print_buff);
+		if(client)
+		{
+			FormatEx(print_buff, sizeof(print_buff), "%T", "c_PlayerReset", client, targetName);
+			CPrintToChat(client, print_buff);
+		}
+		else
+			PrintToServer("[CLANS] Player %s was reseted", targetName);
+
 		if(CheckForLog(LOG_CLANACTION))
 		{
 			char log_buff[LOG_SIZE];
@@ -346,13 +464,25 @@ public Action Command_AdminResetClient(int client, int args)
 				FormatEx(log_buff, sizeof(log_buff), "%T", "L_ResetPlayer", LANG_SERVER, targetName);
 				DB_LogAction(client, false, GetClientClanByID(ClanClient), log_buff, clientID, true, GetClientClanByID(clientID), LOG_CLANACTION);
 			}
-			FormatEx(print_buff, sizeof(print_buff), "%T", "c_PlayerReset", client, g_sClientData[clientID][CLIENT_NAME]);
-			CPrintToChat(client, print_buff);
+			if(client)
+			{
+				FormatEx(print_buff, sizeof(print_buff), "%T", "c_PlayerReset", client, targetName);
+				CPrintToChat(client, print_buff);
+			}
+			else
+			{
+				PrintToServer("[CLANS] Player %s was reseted", targetName);
+			}
 		}
 		else
 		{
-			FormatEx(print_buff, sizeof(print_buff), "%T", "c_PlayerSteamDoesntExist", client);
-			CPrintToChat(client, print_buff);
+			if(client)
+			{
+				FormatEx(print_buff, sizeof(print_buff), "%T", "c_PlayerSteamDoesntExist", client);
+				CPrintToChat(client, print_buff);
+			}
+			else
+				PrintToServer("[CLANS] Player with this Steam ID wasn't found!");
 			return Plugin_Handled;
 		}
 	}

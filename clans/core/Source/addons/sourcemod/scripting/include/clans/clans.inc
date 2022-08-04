@@ -64,7 +64,7 @@ native int Clans_GetClanCoins(int clanid);
  * @param		clanid - clan's index
  * @param 		coins - clan coins to give
  * @param		givenByAdmin - flag if admin gave coins to clan
- * @return		true if successed, false otherwise
+ * @noreturn
  */
 native void Clans_GiveClanCoins(int clanid, int coins, bool givenByAdmin = false);
 

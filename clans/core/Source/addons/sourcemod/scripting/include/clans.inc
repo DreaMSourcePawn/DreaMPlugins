@@ -68,6 +68,42 @@
 #define TOP_MEMBERS 3									/*		Top by number of members					*/
 #define TOP_COINS 4										/*		Top by number of clan coins					*/
 
+enum Clan_MenuType
+{
+	CM_Main,			//ThrowClanMenuToClient(int client)
+	CM_Control,			//ThrowClanControlMenu(int client)
+	CM_PlayerStats,		//ThrowPlayerStatsToClient(int client, int targetID)
+	CM_ClanStats,		//ThrowClanStatsToClient(int client, int clanid)
+	CM_ClanMembers,		//ThrowClanMembersToClient(int client, int clanid, int showFlags)
+	CM_Top,				//ThrowTopsMenuToClient(int client)
+	CM_ClansList,		//ThrowClansToClient(int client, bool showClientClan)
+	CM_AllClanClients,	//ThrowClanClientsToClient(int client)
+	CM_Admin,			//ThrowAdminMenu(int client)
+	CM_ClanHelp,		//ThrowClanHelp(int client)
+	CM_TagSettings		//ThrowClanTagSettings(int client)
+};
+
+enum Clans_ClientStatsType
+{
+    CCST_USETAG,            // Flag if client uses clan tag
+    CCST_ID,                // Client's id in database
+    CCST_ROLE,              // Client's role
+    CCST_CLANID,            // Client clan's id
+    CCST_KILLS,             // Client's kills in clan
+    CCST_DEATHS,            // Client's deaths in clan
+    CCST_PERMTOCREATE,      // Flag if client can create a clan
+    CCST_TIMEINCLAN,        // Client's time in clan
+    CCST_TIMETOCREATE       // Client's remaining time to create a new clan
+};
+
+enum Clan_RegStatus
+{
+	CR_Success,					//Successful registration
+	CR_AlreadyExists,			//Registration of a plugin already exists
+	CR_NoApprove,				//Forward Clans_ApproveHandle wasn't found
+	CR_NoMenuOpenedForward		//Forward Clans_OnClanControlMenuOpened wasn't found
+};
+
 /**
  * Get clan's database
  *
@@ -88,3 +124,25 @@ native bool Clans_IsMySQLDatabase();
  * @return true - loaded, false otherwise
  */
 native bool Clans_AreClansLoaded();
+
+/**
+ * Register a clan control option. If there is any of extra different from the core options
+ * Clan control menu will be created and shown to client. Also it will be active in the main menu
+ * CALL THIS NATIVE ONCE IN PLUGIN
+ * ALSO DO NOT FORGET TO APPROVE YOUR REGISTRATION (see Clans_ApproveHandle in clans/forwards.inc)
+ * MAKE SURE YOU HAVE Clans_OnClanControlMenuOpened and Clans_ApproveHandle FORWARDS (if you haven't your plugin won't be registered)
+ *
+ * @param int iRole - required role for the option (see CLIENT DATA DEFINES INTEGER)
+ *
+ * @return Clan_RegStatus (see above)
+ */
+native Clan_RegStatus Clans_RegClanControlOption(int iRole);
+
+/**
+ * Remove an extra clan control option.
+ *
+ * @param int iRole - required role for the option (see CLIENT DATA DEFINES INTEGER)
+ *
+ * @return true on success, false otherwise (your plugin hasn't registered options for this role)
+ */
+native bool Clans_RemoveClanControlOption(int iRole);

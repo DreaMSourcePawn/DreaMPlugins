@@ -328,8 +328,10 @@ bool SetClanType(int clanid, int type)
  */
 void CreateClan(int leader, char[] clanName, int createdBy = -1)
 {
-	if(leader == createdBy)
-		createdBy = -1;
+	/*if(leader == createdBy)
+		createdBy = -1;*/
+	if(!F_PreClanCreate(leader, clanName, createdBy))
+		return;
 	DB_CreateClan(leader, clanName, createdBy);
 	UpdateLastClanCreationTime(leader);
 }
@@ -455,32 +457,6 @@ void UpdatePlayerClanTag(int client)
 	}
 }
 
-void ClanTagCallback(Handle owner, Handle hndl, const char[] error, int client)	//хе, ну а че не
-{
-	if(hndl == INVALID_HANDLE)
-	{
-		LogError("[CLANS] Query Fail load client's role: %s;", error);
-	}
-	else if(SQL_FetchRow(hndl))
-	{
-		int role = SQL_FetchInt(hndl, 0);
-		if(role == CLIENT_LEADER)
-		{
-			char leaderTag[16];
-			FormatEx(leaderTag, sizeof(leaderTag), "♦ %s", g_sClientData[client][CLIENT_CLANNAME]);
-			CS_SetClientClanTag(client, leaderTag);
-		}
-		else
-		{
-			CS_SetClientClanTag(client, g_sClientData[client][CLIENT_CLANNAME]);
-		}
-	}
-	else
-	{
-		CS_SetClientClanTag(client, "");
-	}
-}
-
 /**
  * Get online client's id in database
  *
@@ -575,37 +551,6 @@ bool IsClientInClan(int client)
 	return true; //Если что то будет не так, то тут было: strcmp(g_sClientData[client][CLIENT_CLANNAME], "") == 0;
 	//return strcmp(g_sClientData[client][CLIENT_CLANNAME], "") != 0;
 }
-
-/**
- * Check if player in clan
- *
- * @param int clientID - player's id in database
- *
- * @return true - player in any clan, false otherwise
- */
-bool IsClientInClanByID(int clientID)
-{
-	if(clientID < 0)
-		return false;
-	for(int i = 1; i <= MaxClients; i++)
-	{
-		if(playerID[i] == clientID)
-			return true;	//v1.87T
-	}
-	SQL_LockDatabase(g_hClansDB);
-	char query[150];
-	FormatEx(query, sizeof(query), "SELECT 1 FROM `players_table` WHERE `player_id` = '%d'", clientID);
-	DBResultSet rSet = SQL_Query(g_hClansDB, query);
-	SQL_UnlockDatabase(g_hClansDB);
-	if(rSet != null && rSet.FetchRow())
-	{
-		delete rSet;
-		return true;
-	}
-	delete rSet;
-	return false;
-}
-
 
 /**
  * Get client's clan id in database by client's id
@@ -840,12 +785,7 @@ bool ChangeClientKillsInClanByID(int clientID, int amountToAdd)
 			return true;
 		}
 	}
-	char query[200];
-	/*FormatEx(query, sizeof(query), "UPDATE `players_table` SET `player_kills` = `player_kills`+'%d' WHERE `player_id` = '%d'", amountToAdd, clientID);
-	g_hClansDB.Query(DB_ClientError, query, 1);
-	FormatEx(query, sizeof(query), "SELECT `player_clanid` FROM `players_table` WHERE `player_id` = '%d'", clientID);
-	g_hClansDB.Query(DB_ChangeClientKillsInClan, query, amountToAdd);*/
-	
+	char query[400];
 	Transaction txn = SQL_CreateTransaction();
 	FormatEx(query, sizeof(query), "UPDATE `players_table` SET `player_kills` = `player_kills`+'%d' WHERE `player_id` = '%d'", amountToAdd, clientID);
 	txn.AddQuery(query);
@@ -931,11 +871,6 @@ bool ChangeClientDeathsInClanByID(int clientID, int amountToAdd)
 		}
 	}
 	char query[400];
-	/*FormatEx(query, sizeof(query), "UPDATE `players_table` SET `player_deaths` = `player_deaths`+'%d' WHERE `player_id` = '%d'", amountToAdd, clientID);
-	g_hClansDB.Query(DB_ClientError, query, 1);
-	FormatEx(query, sizeof(query), "SELECT `player_clanid` FROM `players_table` WHERE `player_id` = '%d'", clientID);
-	g_hClansDB.Query(DB_ChangeClientDeathsInClan, query, amountToAdd);*/
-	
 	Transaction txn = SQL_CreateTransaction();
 	FormatEx(query, sizeof(query), "UPDATE `players_table` SET `player_deaths` = `player_deaths`+'%d' WHERE `player_id` = '%d'", amountToAdd, clientID);
 	txn.AddQuery(query);
@@ -1215,30 +1150,6 @@ bool CanRoleDo(int role, int permission)
 }
 
 /**
- * Проверка, что игрок может делать хоть что-то
- *
- * @param int client - айди игрока
- *
- * @return true - игрок может делать хоть что-то, false иначе
- * @deprecated since 1.7
- */
-bool CanPlayerDoAnything(int client)
-{
-	if(client < 1 || client > MaxClients || !IsClientInGame(client))
-		return false;
-	int check;
-	//int role = GetClientRoleByID(ClanClient);
-	int role = g_iClientData[client][CLIENT_ROLE];	//v1.87T
-	check = g_iRInvitePerm & role;
-	check |= g_iRGiveCoinsToClan & role;
-	check |= g_iRExpandClan & role;
-	check |= g_iRKickPlayer & role;
-	check |= g_iRChangeType & role;
-	check |= g_iRChangeRole & role;
-	return check > 0;
-}
-
-/**
  * Проверка, что роль может делать хоть что-то
  *
  * @param int role - индекс роли
@@ -1256,6 +1167,10 @@ bool CanRoleDoAnything(int role)
 	check |= g_iRKickPlayer & role;
 	check |= g_iRChangeType & role;
 	check |= g_iRChangeRole & role;
+
+	if(role > 3)
+		role = 3;
+	check |= g_alRolesOptions[role].Length > 0 ? (role == 0 ? 1 : role) : 0;
 	return check > 0;
 }
 
@@ -1281,4 +1196,51 @@ void SecondsToTime(int seconds, char[] buffer, int maxlength, int client)
 	minutes = seconds/60;
 	seconds -= 60*minutes;
 	FormatEx(buffer, maxlength, "%T", "Time", client, months, days, hours, minutes, seconds);
+}
+
+/**
+ * Register a clan control option. If there is any of extra different from the core options
+ * Clan control menu will be created and shown to client. Also it will be active in the main menu
+ *
+ * @param int iRole - required role for the option
+ *
+ * @return Clan_RegStatus - status of the registration
+ */
+Clan_RegStatus RegisterExtraOptionForClanControl(int iRole, Handle hPlugin)
+{
+	for(int i = 0; i < g_alRolesOptions[iRole].Length; ++i)
+	{
+		if(g_alRolesOptions[iRole].Get(i) == hPlugin)
+			return CR_AlreadyExists;
+	}
+
+	if(GetFunctionByName(hPlugin, "Clans_OnClanControlMenuOpened") == INVALID_FUNCTION)
+		return CR_NoMenuOpenedForward;
+
+	if(GetFunctionByName(hPlugin, "Clans_ApproveHandle") == INVALID_FUNCTION)
+		return CR_NoApprove;
+
+	g_alRolesOptions[iRole].Push(hPlugin);
+	return CR_Success;
+}
+
+/**
+ * Remove an extra clan control option.
+ *
+ * @param int iRole - required role for the option
+ *
+ * @return true on success, false otherwise (plugin hasn't registered options for this role)
+ */
+bool RemoveClanControlOption(int iRole, Handle hPlugin)
+{
+	for(int i = 0; i < g_alRolesOptions[iRole].Length; ++i)
+	{
+		if(g_alRolesOptions[iRole].Get(i) == hPlugin)
+		{
+			g_alRolesOptions[iRole].Erase(i);
+			return true;
+		}
+	}
+
+	return false;
 }
