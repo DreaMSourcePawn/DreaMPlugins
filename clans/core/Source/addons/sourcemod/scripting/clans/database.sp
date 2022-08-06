@@ -501,28 +501,28 @@ bool DB_ChangeClanMaxMembers(int clanid, int amountToAdd)
 {
 	SQL_LockDatabase(g_hClansDB);
 	int maxMembers;		//Максимум игроков в клане сейчас
-    char query[200];
-    FormatEx(query, sizeof(query), "SELECT `maxmembers` FROM `clans_table` WHERE `clan_id` = '%d'", clanid);
-    DBResultSet rSet = SQL_Query(g_hClansDB, query);
-    SQL_UnlockDatabase(g_hClansDB);
-    if(rSet != null && rSet.FetchRow())
-    {
-    	maxMembers = rSet.FetchInt(0);
-    }
-    else
-    	return false;
-    	
-    
-    if(maxMembers + amountToAdd > g_iMaxClanMembers || maxMembers + amountToAdd <= 0)
+	char query[200];
+	FormatEx(query, sizeof(query), "SELECT `maxmembers` FROM `clans_table` WHERE `clan_id` = '%d'", clanid);
+	DBResultSet rSet = SQL_Query(g_hClansDB, query);
+	SQL_UnlockDatabase(g_hClansDB);
+	if(rSet != null && rSet.FetchRow())
+	{
+		maxMembers = rSet.FetchInt(0);
+	}
+	else
+		return false;
+
+
+	if(maxMembers + amountToAdd > g_iMaxClanMembers || maxMembers + amountToAdd <= 0)
 	{
 		delete rSet;
-    	return false;
+		return false;
 	}
-    	
-    FormatEx(query, sizeof(query), "UPDATE `clans_table` SET `maxmembers` = '%d' WHERE `clan_id` = '%d'", maxMembers + amountToAdd, clanid);
+
+	FormatEx(query, sizeof(query), "UPDATE `clans_table` SET `maxmembers` = '%d' WHERE `clan_id` = '%d'", maxMembers + amountToAdd, clanid);
 	SQL_TQuery(g_hClansDB, DB_ClansError, query, 6);
 	delete rSet;
-    return true;
+	return true;
 }
 
 /**

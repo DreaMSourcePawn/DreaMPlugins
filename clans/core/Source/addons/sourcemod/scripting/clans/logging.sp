@@ -65,11 +65,9 @@ Action Timer_LogAction(Handle timer, DataPack data)
 {
 	char query[1024],
 		 clientName[MAX_NAME_LENGTH+1],
-		 clientClanName[MAX_NAME_LENGTH+1], 
 		 targetName[MAX_NAME_LENGTH+1], 
-		 targetClanName[MAX_NAME_LENGTH+1],
 		 action[300];
-	clientName = "None"; clientClanName = "None"; targetName = "None"; targetClanName = "None";
+	clientName = "None"; targetName = "None";
 	
 	int client = data.ReadCell();
 	bool clientFromDB = data.ReadCell();
@@ -120,6 +118,8 @@ Action Timer_LogAction(Handle timer, DataPack data)
 	FormatEx(query, sizeof(query), "SELECT `clan_name` FROM `clans_table` WHERE `clan_id` = '%d'\
 									UNION SELECT `clan_name` FROM `clans_table` WHERE `clan_id` = '%d'", clientClanid, targetClanid);
 	g_hClansDB.Query(DB_LogCallback, query, dp);
+
+	return Plugin_Stop;
 }
 
 void DB_LogCallback(Handle owner, Handle hndl, const char[] error, DataPack dp)

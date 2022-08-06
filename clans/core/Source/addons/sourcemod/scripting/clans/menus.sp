@@ -1,8 +1,8 @@
 #include "clans/menus_enum.sp"
 
 //ArrayStack g_asClientLastMenu[MAXPLAYERS+1] = {null, null, ...};	//v1.86 stack of Functions
-ArrayStack g_asClientLastMenu[MAXPLAYERS+1] = {null, null, ...};	//v1.86 stack of Functions's id (see menus_defines)
-ArrayStack g_asMClientBuffer[MAXPLAYERS+1] = {null, null, ...};		//v1.86 stack of params
+ArrayStack g_asClientLastMenu[MAXPLAYERS+1];	//v1.86 stack of Functions's id (see menus_defines)
+ArrayStack g_asMClientBuffer[MAXPLAYERS+1];		//v1.86 stack of params
 
 /**
  * Clears player's buffer (v1.86)
@@ -66,6 +66,7 @@ int Clan_InvitePlayerSelectMenu(Handle inviteSelectMenu, MenuAction action, int 
 	{
 		CloseHandle(inviteSelectMenu);
 	}
+	return 0;
 }
 
 /**
@@ -120,7 +121,7 @@ int Clan_PlayerClanSelectMenu(Handle playerClanMenu, MenuAction action, int clie
 			{
 				FormatEx(print_buff, sizeof(print_buff), "%T", "c_YouCantCreateClan", client);
 				CPrintToChat(client, print_buff);
-				return;
+				return 0;
 			}
 			int timeOfCD = GetTime() - GetLastClanCreationTime(client); //1.7
 			if(g_iClanCreationCD-timeOfCD/60 > 0)
@@ -152,6 +153,7 @@ int Clan_PlayerClanSelectMenu(Handle playerClanMenu, MenuAction action, int clie
 	}
 	else if (action == MenuAction_End && action == MenuAction_Cancel)
 		CloseHandle(playerClanMenu);
+	return 0;
 }
 
 /**
@@ -161,6 +163,7 @@ int Clan_PlayerStatsMenu(Handle playerStatsMenu, MenuAction action, int client, 
 {
 	CloseHandle(playerStatsMenu);
 	ThrowLastMenu(client);	//v1.86
+	return 0;
 }
 
 /**
@@ -214,6 +217,7 @@ int Clan_ClanStatsMenu(Handle clanStatsMenu, MenuAction action, int client, int 
 		CloseHandle(clanStatsMenu);
 		ThrowLastMenu(client);	//v1.86
 	}
+	return 0;
 }
 
 /**
@@ -239,6 +243,7 @@ int Clan_LeaveClanSelectMenu(Handle leaveClanMenu, MenuAction action, int client
 	}
 	else if (action == MenuAction_End)
 		CloseHandle(leaveClanMenu);
+	return 0;
 }
 
 /**
@@ -315,6 +320,7 @@ int Clan_ClanMembersSelectMenu(Handle clanMembersMenu, MenuAction action, int cl
 	{
 		ThrowLastMenu(client);	//v1.86
 	}
+	return 0;
 }
 
 /**
@@ -423,6 +429,7 @@ int Clan_ClanControlSelectMenu(Handle clanControlMenu, MenuAction action, int cl
 	{
 		ThrowLastMenu(client);	//v1.86
 	}
+	return 0;
 }
 
 /**
@@ -466,6 +473,7 @@ int Clan_ExpandClanSelectPanel(Handle expandClanPanel, MenuAction action, int cl
 	}
 	else if (action == MenuAction_End)
 		CloseHandle(expandClanPanel);
+	return 0;
 }
 
 /**
@@ -488,6 +496,7 @@ int Clan_DeleteClanSelectMenu(Handle deleteClanMenu, MenuAction action, int clie
 	}
 	else if (action == MenuAction_End && action == MenuAction_Cancel)
 		CloseHandle(deleteClanMenu);
+	return 0;
 }
 
 /**
@@ -542,6 +551,7 @@ int Clan_KickSelectMenu(Handle kickMenu, MenuAction action, int client, int opti
 	}
 	else if (action == MenuAction_End)
 		CloseHandle(kickMenu);
+	return 0;
 }
 
 /**
@@ -619,6 +629,7 @@ int Clan_LeaderSelectMenu(Handle kickMenu, MenuAction action, int client, int op
 	}
 	else if (action == MenuAction_End)
 		CloseHandle(kickMenu);
+	return 0;
 }
 
 /**
@@ -678,6 +689,7 @@ int Clan_TopsSelectMenu(Handle topsMenu, MenuAction action, int client, int opti
 	{
 		ThrowLastMenu(client);	//v1.86
 	}
+	return 0;
 }
 
 /**
@@ -702,6 +714,7 @@ int Clan_TopClansSelectMenu(Handle topMenu, MenuAction action, int client, int o
 	{
 		ThrowLastMenu(client);	//v1.86
 	}
+	return 0;
 }
 
 /**
@@ -807,6 +820,7 @@ int Clan_AdminClansSelectMenu(Handle adminClansMenu, MenuAction action, int clie
 	{
 		ThrowLastMenu(client);	//v1.86
 	}
+	return 0;
 }
 
 /**
@@ -896,6 +910,7 @@ int Clan_ClansSelectMenu(Handle clansMenu, MenuAction action, int client, int op
 		CLAN_STYPE = -1;
 		CLAN_STARGET = -1;
 	}
+	return 0;
 }
 
 /**
@@ -933,6 +948,7 @@ int Clan_ClanClientsSelectMenu(Handle clanClientsMenu, MenuAction action, int cl
 		ADMIN_STYPE = -1;
 		ThrowLastMenu(client);
 	}
+	return 0;
 }
 
 /**
@@ -941,6 +957,7 @@ int Clan_ClanClientsSelectMenu(Handle clanClientsMenu, MenuAction action, int cl
 int Clan_HelpMenu(Handle HelpPanel, MenuAction action, int client, int option)
 {
 	CloseHandle(HelpPanel);
+	return 0;
 }
 
 /**
@@ -966,6 +983,7 @@ int Clan_LeaderOfNewClanSelectMenu(Handle newClanLeaderSelectMenu, MenuAction ac
 		ADMIN_STYPE = -1;
 		ThrowLastMenu(client);
 	}
+	return 0;
 }
 
 /**
@@ -1009,6 +1027,7 @@ int Clans_InviteAcceptMenu(Handle inviteMenu, MenuAction action, int client, int
 	{
 		CloseHandle(inviteMenu);
 	}
+	return 0;
 }
 
 /**
@@ -1095,6 +1114,7 @@ int Clan_SetTypeSelectMenu(Handle setTypeMenu, MenuAction action, int client, in
 	{
 		ThrowLastMenu(client);	//v1.86
 	}
+	return 0;
 }
 
 /**
@@ -1170,6 +1190,7 @@ int Clan_ChangeRoleSelectMenu(Handle changeRoleMenu, MenuAction action, int clie
 	{
 		ThrowLastMenu(client);	//v1.86
 	}
+	return 0;
 }
 
 /**
@@ -1192,6 +1213,7 @@ int Clan_RenameClanSelectMenu(Handle renameClanMenu, MenuAction action, int clie
 	{
 		ThrowLastMenu(client);	//v1.86
 	}
+	return 0;
 }
 
 void DBM_RenameClanCallback(Database db, DBResultSet rSet, const char[] sError, int iClient)
@@ -1246,6 +1268,7 @@ int Clan_ClanTagSetMenu(Handle clanTagSetMenu, MenuAction action, int client, in
 	{
 		ThrowLastMenu(client);	//v1.86
 	}
+	return 0;
 }
 
 //=============================== MENUS THROWS ===============================//
