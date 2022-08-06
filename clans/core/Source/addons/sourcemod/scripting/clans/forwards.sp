@@ -168,6 +168,7 @@ Action FT_OnClansLoaded(Handle timer)
 	delete plugIter;
 	delete plugin;
 	delete thisplugin;
+	return Plugin_Stop;
 }
 
 /**

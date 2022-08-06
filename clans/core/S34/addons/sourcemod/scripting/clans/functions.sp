@@ -1170,7 +1170,15 @@ bool CanRoleDoAnything(int role)
 
 	if(role > 3)
 		role = 3;
-	check |= g_alRolesOptions[role].Length > 0 ? (role == 0 ? 1 : role) : 0;
+	
+	for(int roleOptionsIndex = role; check == 0 && roleOptionsIndex < CLIENT_LEADER; ++roleOptionsIndex)
+	{
+		if(g_alRolesOptions[roleOptionsIndex].Length > 0)
+		{
+			return true;
+		}
+	}
+
 	return check > 0;
 }
 
@@ -1208,17 +1216,17 @@ void SecondsToTime(int seconds, char[] buffer, int maxlength, int client)
  */
 Clan_RegStatus RegisterExtraOptionForClanControl(int iRole, Handle hPlugin)
 {
-	for(int i = 0; i < g_alRolesOptions[iRole].Length; ++i)
-	{
-		if(g_alRolesOptions[iRole].Get(i) == hPlugin)
-			return CR_AlreadyExists;
-	}
-
 	if(GetFunctionByName(hPlugin, "Clans_OnClanControlMenuOpened") == INVALID_FUNCTION)
 		return CR_NoMenuOpenedForward;
 
 	if(GetFunctionByName(hPlugin, "Clans_ApproveHandle") == INVALID_FUNCTION)
 		return CR_NoApprove;
+	
+	for(int i = 0; i < g_alRolesOptions[iRole].Length; ++i)
+	{
+		if(g_alRolesOptions[iRole].Get(i) == hPlugin)
+			return CR_AlreadyExists;
+	}
 
 	g_alRolesOptions[iRole].Push(hPlugin);
 	return CR_Success;
