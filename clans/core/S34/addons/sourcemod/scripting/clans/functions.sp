@@ -1160,6 +1160,7 @@ bool CanRoleDoAnything(int role)
 {
 	if(role < CLIENT_MEMBER || role > CLIENT_LEADER)
 		return false;
+		
 	int check;
 	check = g_iRInvitePerm & role;
 	check |= g_iRGiveCoinsToClan & role;
@@ -1171,12 +1172,9 @@ bool CanRoleDoAnything(int role)
 	if(role > 3)
 		role = 3;
 	
-	for(int roleOptionsIndex = role; check == 0 && roleOptionsIndex > 0; --roleOptionsIndex)
+	if(g_alRolesOptions[role].Length > 0)
 	{
-		if(g_alRolesOptions[roleOptionsIndex].Length > 0)
-		{
-			return true;
-		}
+		return true;
 	}
 
 	return check > 0;
