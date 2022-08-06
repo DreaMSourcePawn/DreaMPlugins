@@ -1171,7 +1171,7 @@ bool CanRoleDoAnything(int role)
 	if(role > 3)
 		role = 3;
 	
-	for(int roleOptionsIndex = role; check == 0 && roleOptionsIndex < CLIENT_LEADER; ++roleOptionsIndex)
+	for(int roleOptionsIndex = role; check == 0 && roleOptionsIndex > 0; --roleOptionsIndex)
 	{
 		if(g_alRolesOptions[roleOptionsIndex].Length > 0)
 		{
