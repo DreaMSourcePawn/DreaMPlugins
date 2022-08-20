@@ -9,7 +9,7 @@
 
 #pragma newdecls required
 
-#define PLUGIN_VERSION "1.881"
+#define PLUGIN_VERSION "1.882"
 #define ClanClient playerID[client]	//Айди игрока в базе данных
 #define BUFF_SIZE 600
 #define LOG_SIZE 512
@@ -332,7 +332,7 @@ Action Spawn(Handle event, const char[] name, bool db)
 
 Action SayHook(int client, const char[] command, int args)
 {
-	if(client && IsClientInGame(client))
+	if(client > 0 && client <= MaxClients && IsClientInGame(client))
 	{
 		if(writeToClanChat[client])	//1.7
 		{
