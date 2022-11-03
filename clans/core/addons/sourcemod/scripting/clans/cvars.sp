@@ -107,11 +107,16 @@ void RegCVars()
 	HookConVarChange(g_hRKickPlayer, OnConVarChange);
 
 	g_cvSteamAuth2 = CreateConVar("sm_clans_steamauth2", "1", "1 - use auth2 (STEAM_) instead of auth3 (U:)", 0, true, 0.0, true, 1.0);
+
+	g_cvAdminFlagClanChat = CreateConVar("sm_clans_admin_cct", "b", "Admin flag to see clans' chat. If it's empty admin won't see any clan's chat");
+	g_cvAdminFlagClanChat.GetString(buff, sizeof(buff));
+	g_iAdminFlagForCCT = GetAdminFlagForCCT(buff);
+	HookConVarChange(g_cvAdminFlagClanChat, OnConVarChange);
 	
 	AutoExecConfig(true, "clans_settings", "clans");
 }
 
-void OnConVarChange(Handle hCvar, const char[] oldValue, const char[] newValue)
+void OnConVarChange(ConVar hCvar, const char[] oldValue, const char[] newValue)
 {
 	if(hCvar == g_hExpandingCost) 
 		g_iExpandingCost = StringToInt(newValue);
@@ -187,6 +192,9 @@ void OnConVarChange(Handle hCvar, const char[] oldValue, const char[] newValue)
 		
 	else if(hCvar == g_hClanChatFilter) //1.8
 		g_iClanChatFilter = GetChatFilter(newValue);
+
+	else if(hCvar == g_cvAdminFlagClanChat)
+		g_iAdminFlagForCCT = GetAdminFlagForCCT(newValue);
 }
 
 int GetRolesForPerm(const char[] value)	//1.8
@@ -235,4 +243,20 @@ int GetChatFilter(const char[] value)
 		}
 	}
 	return filter;
+}
+
+int GetAdminFlagForCCT(const char[] value)
+{
+	if(!value[0])
+		return -1;
+
+	int iFlag = value[0] - 97;
+
+	if(iFlag < 0 || iFlag > 19)
+		return view_as<int>(Admin_Root);
+	
+	if(iFlag > 13)
+		++iFlag;
+
+	return iFlag;
 }

@@ -1262,6 +1262,9 @@ bool RemoveClanControlOption(int iRole, Handle hPlugin)
  */
 bool HasPlayerAdminFlag(int iClient)
 {
-    AdminId admID = GetUserAdmin(iClient);
-    return admID != INVALID_ADMIN_ID && admID.HasFlag(Admin_Root, Access_Real);
+	if(g_iAdminFlagForCCT == -1)
+		return false;
+
+	AdminId admID = GetUserAdmin(iClient);
+	return admID != INVALID_ADMIN_ID && admID.HasFlag(view_as<AdminFlag>(g_iAdminFlagForCCT), Access_Real);
 }

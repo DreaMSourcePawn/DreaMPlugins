@@ -114,7 +114,8 @@ ConVar 	g_hExpandingCost, 		//Price of expansion
 		g_hClanCreationCD,		//Time in minutes when player can create a new clan again (1.7)
 		g_hRenameClanPrice,		//Clan rename price (1.7)
 		g_hClanChatFilter,		//Clan chat filter (1.8): 1 (d) - dead can't write to alive, 2 (t) - people from different teams can't see each other's messages
-		g_cvSteamAuth2;			//Flag should steam auth2 be used instead of auth3
+		g_cvSteamAuth2,			//Flag should steam auth2 be used instead of auth3
+		g_cvAdminFlagClanChat;	//Admin flag to see clans' chat (1.9)
 		
 int 	g_iExpandingCost, 		//Price of expansion
 		g_iMaxClanMembers, 		//Maximum number of players in any clan
@@ -126,18 +127,19 @@ int 	g_iExpandingCost, 		//Price of expansion
 		g_iClanCreationCD,		//Time in minutes when player can create a new clan again (1.7)
 		g_iRenameClanPrice,		//Clan rename price (1.7)
 		g_iClanChatFilter,		//Clan chat filter (1.8)
-		g_iSetClanTag;			//2 - set clan tag by force, 1 - set clan tag if player is in clan, 0 - set clan tag if player wants it (1.82)
+		g_iSetClanTag,			//2 - set clan tag by force, 1 - set clan tag if player is in clan, 0 - set clan tag if player wants it (1.82)
+		g_iAdminFlagForCCT;		//Admin flag to see clans' chat
 
 bool	g_bLeaderChange,		//Flag: can leader set a new leader
 		g_bCoinsTransfer,		//Flag: can clan transfer coins to other clan
 		g_bLeaderLeave;			//Flag: can leader leave his/her clan
-		
+
 #define USEAUTH2 g_cvSteamAuth2.BoolValue
 #define ISTAGENABLE g_hClanTagEnabled.BoolValue
 //===================== CVARS END =====================//
 
 //=====================Permissions=====================//
-Handle	g_hRInvitePerm,				//Invite players to clan
+ConVar	g_hRInvitePerm,				//Invite players to clan
 		g_hRGiveCoinsToClan,		//Give coins to other clan
 		g_hRExpandClan,				//Expand clan
 		g_hRKickPlayer,				//Kick player
@@ -153,7 +155,7 @@ int		g_iRInvitePerm,
 //=====================Permissions END=====================//
 
 //===================== ClanChatColors =====================//
-Handle 	g_hCCLeader,		//Color for leader in clan chat
+ConVar 	g_hCCLeader,		//Color for leader in clan chat
 		g_hCCColeader,		//Color for co-leader in clan chat
 		g_hCCElder,			//Color for elder in clan chat
 		g_hCCMember;		//Color for member in clan chat
