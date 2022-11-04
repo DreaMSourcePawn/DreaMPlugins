@@ -177,7 +177,7 @@
 	"c_Wrongcclan"
 	{
 		"en"	"{red}[CLANS]{lightgreen} Incorrectly entered command! Tip: !cclan [name of clan 1-8 characters]"
-		"ru"	"{red}[CLANS]{lightgreen} Неверно введена комадна! !cclan [Название клана 1-8 символов]"\
+		"ru"	"{red}[CLANS]{lightgreen} Неверно введена комадна! !cclan [Название клана 1-8 символов]"
 		"ua"	"{red}[CLANS]{lightgreen} Неправильно введена комадна! !cclan [Назва клану 1-8 символів]"
 	}
 	

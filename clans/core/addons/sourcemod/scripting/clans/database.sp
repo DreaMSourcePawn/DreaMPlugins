@@ -809,7 +809,7 @@ void DB_LoadClientCallback(Database db, DBResultSet rSet, const char[] error, Da
 				g_iClientData[client][CLIENT_KILLS] = rSet.FetchInt(5);
 				g_iClientData[client][CLIENT_DEATHS] = rSet.FetchInt(6);
 				g_iClientData[client][CLIENT_TIME] = rSet.FetchInt(7);
-				rSet.FetchString(8, g_sClientData[client][CLIENT_CLANNAME], sizeof(g_sClientData[]));
+				rSet.FetchString(8, g_sClientData[client][CLIENT_CLANNAME], sizeof(g_sClientData[][]));
 				UpdatePlayerClanTag(client);
 
 				if(strcmp(userName, g_sClientData[client][CLIENT_NAME]))	//Обновить в базе имя игрока
