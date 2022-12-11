@@ -17,7 +17,7 @@ public Plugin:myinfo =
 	name = "[VIP] Clan create", 
 	author = "Dream", 
 	description = "Add permission for VIPs to create a clan", 
-	version = "1.2", 
+	version = "1.232", 
 } 
 
 public OnPluginStart()
@@ -65,18 +65,17 @@ public OnPluginEnd()
 public VIP_OnVIPLoaded()
 {
 	if(!VIP_IsValidFeature(g_sFeature))
-		VIP_RegisterFeature(g_sFeature, INT, SELECTABLE, OnClanCreateUsed);
+		VIP_RegisterFeature(g_sFeature, BOOL, SELECTABLE, OnClanCreateUsed);
 }
 
 public void OnClientPostAdminCheck(int client)
 {
-	CreateTimer(0.5, RemovePermission, client, TIMER_FLAG_NO_MAPCHANGE);
 	creatingClan[client] = false;
 }
 
 public void VIP_OnVIPClientLoaded(int client)
 {
-	if(VIP_GetClientFeatureInt(client, g_sFeature) == 1 && (g_bTempGive || (!g_bTempGive && VIP_GetClientAccessTime(client) == 0)))
+	if(VIP_IsClientFeatureUse(client, g_sFeature) && (g_bTempGive || (!g_bTempGive && VIP_GetClientAccessTime(client) == 0)))
 		CreateTimer(3.0, GivePermission, client, TIMER_FLAG_NO_MAPCHANGE);
 }
 
@@ -113,7 +112,7 @@ Action RemovePermission(Handle timer, int client)
 
 Action SayHook(int client, const char[] command, int args)
 {
-	if(client && IsClientInGame(client) && creatingClan[client])
+	if(client > 0 && client <= MaxClients && IsClientInGame(client) && creatingClan[client])
 	{
 		char buffer[50];
 		GetCmdArg(1, buffer, sizeof(buffer));

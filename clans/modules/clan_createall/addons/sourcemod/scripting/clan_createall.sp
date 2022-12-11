@@ -6,15 +6,25 @@ public Plugin myinfo =
 	name = "[CLANS] Everyone can create clan", 
 	author = "Dream", 
 	description = "everyone can create clan", 
-	version = "1.0", 
+	version = "1.2", 
 }
 
-public void OnClientPostAdminCheck(int client)
+public void OnPluginStart()
 {
-	CreateTimer(1.0, GivePermission, client, TIMER_FLAG_NO_MAPCHANGE);
+	if(Clans_AreClansLoaded())
+		Clans_OnClansLoaded();
 }
 
-Action GivePermission(Handle timer, int client)
+public void Clans_OnClansLoaded()
 {
-	Clans_SetCreatePerm(client, true);
+	for(int i = 1; i <= MaxClients; ++i)
+	{
+		if(IsClientInGame(i))
+			Clans_SetCreatePerm(i, true);
+	}
+}
+
+public void Clans_OnClientLoaded(int iClient, int iClientID, int iClanid)
+{
+	Clans_SetCreatePerm(iClient, true);
 }
