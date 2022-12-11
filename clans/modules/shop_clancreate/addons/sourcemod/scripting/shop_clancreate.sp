@@ -2,98 +2,97 @@
 #include <shop>
 #include <clans>
 
-new Handle:g_hPrice, g_iPrice,
-	Handle:g_hSellPrice, g_iSellPrice,
-	ItemId:id;
+int g_iPrice,
+ 	g_iSellPrice,
+	g_iDuration;
 	
-bool used[MAXPLAYERS+1];
+ItemId g_itemid;
 
-public Plugin:myinfo = 
+public Plugin myinfo = 
 { 
 	name = "[SHOP] Clan create", 
-	author = "Dream", 
+	author = "Dream / SnC_P 1.11", 
 	description = "Add buyable permission to create a clan", 
-	version = "1.0", 
-} 
+	version = "1.12", 
+};
 
 public OnPluginStart()
 {
-	g_hPrice = CreateConVar("sm_shop_clancreate_price", "100", "Price of clan create permission.");
-	g_iPrice = GetConVarInt(g_hPrice);
-	HookConVarChange(g_hPrice, OnConVarChange);
-	
-	g_hSellPrice = CreateConVar("sm_shop_clancreate_sellprice", "80", "Sellprice of clan create permission.");
-	g_iSellPrice = GetConVarInt(g_hSellPrice);
-	HookConVarChange(g_hSellPrice, OnConVarChange);
+	ConVar hCvar;
+
+	HookConVarChange((hCvar = CreateConVar("sm_shop_clancreate_price", "100", "Price of clan create permission.")), g_hPrice);
+	g_iPrice = hCvar.IntValue;
+
+	HookConVarChange((hCvar = CreateConVar("sm_shop_clancreate_sellprice", "80", "Sellprice of clan create permission.")), g_hSellPrice);
+	g_iSellPrice = hCvar.IntValue;
+
+	HookConVarChange((hCvar = CreateConVar("sm_shop_clancreate_permduration", "604800", "Duration")), g_hDuration);
+	g_iDuration = hCvar.IntValue;
 
 	AutoExecConfig(true, "shop_clancreate", "shop");
 
 	if(Shop_IsStarted()) Shop_Started();
 }
 
-public OnConVarChange(Handle:hCvar, const String:oldValue[], const String:newValue[])
+
+
+public int g_hPrice(ConVar hCvar, const char[] szOldValue, const char[] szNewValue)
 {
-	if(hCvar == g_hPrice) 
-	{
-		g_iPrice = StringToInt(newValue);
-		if(id != INVALID_ITEM) Shop_SetItemPrice(id, g_iPrice);
-	}
-	else if(hCvar == g_hSellPrice) 
-	{
-		g_iSellPrice = StringToInt(newValue);
-		if(id != INVALID_ITEM) Shop_SetItemSellPrice(id, g_iSellPrice);
-	}
+	g_iPrice = hCvar.IntValue;
+	if(g_itemid != INVALID_ITEM) Shop_SetItemPrice(g_itemid, g_iPrice);
 }
 
-public OnPluginEnd() 
+public int g_hSellPrice(ConVar hCvar, const char[] szOldValue, const char[] szNewValue)
+{
+	g_iSellPrice = hCvar.IntValue;
+	if(g_itemid != INVALID_ITEM) Shop_SetItemSellPrice(g_itemid, g_iSellPrice);
+}
+
+public int g_hDuration(ConVar hCvar, const char[] szOldValue, const char[] szNewValue)
+{
+	g_iDuration = hCvar.IntValue;
+	if(g_itemid != INVALID_ITEM) Shop_SetItemValue(g_itemid, g_iDuration);
+}
+
+
+public void Shop_Started()
+{
+	CategoryId CATEGORY = Shop_RegisterCategory("Clans", "Кланы", "");
+	if(CATEGORY == INVALID_CATEGORY) SetFailState("Failed to register category");
+
+	if(Shop_StartItem(CATEGORY, "clans"))
+	{
+		Shop_SetInfo("Право на создание клана", "", g_iPrice, g_iSellPrice, Item_Togglable, g_iDuration);
+		Shop_SetCallbacks(OnItemRegistered, OnEquipItem);
+		Shop_EndItem();
+	}
+	else
+		SetFailState("Failed to register item");
+}
+
+public void OnPluginEnd() 
 {
 	Shop_UnregisterMe();
 }
 
-public Shop_Started()
+void OnItemRegistered(CategoryId category_id, const char[] category, const char[] item, ItemId item_id)
 {
-	new CategoryId:category_id = Shop_RegisterCategory("stuff", "Разное", "");
-	
-	if (Shop_StartItem(category_id, "clancreate"))
+	g_itemid = item_id;
+}
+
+Action AddPermission(Handle timer, int client)
+{
+	Clans_SetCreatePerm(client, true);
+}
+
+public ShopAction OnEquipItem(int client, CategoryId category_id, const char[] category, ItemId item_id, const char[] sItem, bool isOn, bool elapsed)
+{
+	if (isOn || elapsed)
 	{
-		Shop_SetInfo("Разрешение на создание клана", "Дает Вам разрешение на создание клана до перезахода или смены карты", g_iPrice, g_iSellPrice, Item_Finite, 1);
-		Shop_SetCallbacks(OnItemRegistered, OnPermissionUse);
-		Shop_EndItem();
-	}
-}
-
-public OnItemRegistered(CategoryId:category_id, const String:category[], const String:item[], ItemId:item_id)
-{
-	id = item_id;
-}
-
-public ShopAction:OnPermissionUse(client, CategoryId:category_id, const String:category[], ItemId:item_id, const String:item[])
-{
-	if(Clans_GetOnlineClientClan(client) == -1 && !used[client])
-	{
-		Clans_SetCreatePerm(client, true);
-		used[client] = true;
-		return Shop_UseOn;
-	}
-	return Shop_Raw;
-}
-
-public OnClientPostAdminCheck(client)
-{
-	CreateTimer(1.0, RemovePermission, client, TIMER_FLAG_NO_MAPCHANGE);
-	used[client] = false;
-}
-
-public Action:RemovePermission(Handle:timer, int client)
-{
-	Clans_SetCreatePerm(client, false);
-}
-
-public Clans_OnClanAdded(int clanid, int client)
-{
-	if(used[client])
-	{
-		used[client] = false;
 		Clans_SetCreatePerm(client, false);
+		return Shop_UseOff;
 	}
+
+	CreateTimer(1.0, AddPermission, client, TIMER_FLAG_NO_MAPCHANGE);
+	return Shop_UseOn;
 }
