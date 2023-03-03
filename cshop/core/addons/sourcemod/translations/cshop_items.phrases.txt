@@ -1,0 +1,62 @@
+"Phrases"
+{
+    "hp_armor"
+    {
+        "en"    "HP/Armor"
+        "ru"    "ХП/Броня"
+    }
+    
+    "boosts"
+    {
+        "en"    "Boosts"
+        "ru"    "Бусты"
+    }
+    
+    "MoreHp"
+    {
+        "en"    "More HP"
+        "ru"    "Больше здоровья"
+    }
+
+    "MoreHpDesc"
+    {
+        "en"    "Add HP"
+        "ru"    "Добавляет ХП"
+    }
+    
+    "Armor"
+    {
+        "en"    "Armor at round start"
+        "ru"    "Броня в начале раунда"
+    }
+
+    "ArmorDesc"
+    {
+        "en"    "Adds 50 armor for each level (until 100). Gives helmet at 3rd level"
+        "ru"    "Добавляет по 50 брони за уровень (вплоть до 100). На 3м уровне еще выдает шлем"
+    }
+    
+    "ArmorRegen"
+    {
+        "en"    "Armor regen"
+        "ru"    "Реген брони"
+    }
+
+    "ArmorRegenDesc"
+    {
+        "en"    "Regenerate armor during round"
+        "ru"    "Восстанавливает броню в течение раунда"
+    }
+    
+    "LRXP"
+    {
+        "en"    "Levels Ranks XP Booster"
+        "ru"    "Буст опыта Levels Ranks"
+    }
+    
+    "LRXPDesc"
+    {
+        "en"    "Give more XP for killing enemies"
+        "ru"    "Дает больше опыта за убийство врагов"
+    }
+}

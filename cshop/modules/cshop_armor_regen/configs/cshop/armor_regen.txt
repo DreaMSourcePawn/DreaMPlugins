@@ -1,0 +1,28 @@
+"Settings"
+{
+    "price" "80"
+    "sell_price"    "40"
+    "duration"  "604800"
+    
+    "Levels"
+    {
+        "1" // Anything here
+        {
+            "armor_to_add"      "1"
+            "cd"                "2"     // Gives armor_to_add in 'cd' seconds
+            "max_armor"         "70"    // Regen until this value. Default is 100.
+        }
+        "2"
+        {
+            "upgrade_price"     "500"
+            "armor_to_add"      "1"
+            "cd"                "2"
+        }
+        "3"
+        {
+            "upgrade_price"     "500"
+            "armor_to_add"      "1"
+            "cd"                "2"
+        }
+    }
+}

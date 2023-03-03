@@ -1,0 +1,27 @@
+"CSHOP_ITEMS"
+{
+    "CategoryName"
+    {
+        "id"                "1"
+        "Item name"
+        {
+            "desc"          "desc"  // Translation name. Display this if there is no match in translation file
+            "price"         "10"
+            "sellprice"     "5"
+            "duration"      "3600"
+            "max_amount"    "10"
+            "hidden"        "0"     // 1 - hidden for players
+            "Levels"
+            {
+                "1"                 // Level num, starts with 1
+                {
+                    "price" "50"
+                }
+                "2"
+                {
+                    "price" "100"
+                }
+            }
+        }
+    }
+}

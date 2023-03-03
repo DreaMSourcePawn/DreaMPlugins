@@ -1,5 +1,0 @@
-	"vips"
-	{
-		"en"	"VIP statuses"
-		"ru"	"VIP статусы"
-	}
