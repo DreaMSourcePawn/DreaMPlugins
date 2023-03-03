@@ -1,0 +1,25 @@
+"Settings"
+{
+    "price" "100"
+    "sell_price"    "50"
+    "duration"  "604800"
+    "give_on_spawn" "1"     //0 - on round start, 1 - on player spawn
+    
+    "Levels"
+    {
+        "1"
+        {
+            "add_hp"    "2"             // How much HP give to player on round start
+        }
+        "2"
+        {
+            "upgrade_price"  "300"
+            "add_hp"    "4"             // How much HP give to player on round start
+        }
+        "3"
+        {
+            "upgrade_price"  "400"
+            "add_hp"    "7"             // How much HP give to player on round start
+        }
+    }
+}

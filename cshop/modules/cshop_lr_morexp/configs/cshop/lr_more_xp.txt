@@ -1,0 +1,24 @@
+"Settings"
+{
+    "price" "200"
+    "sell_price"    "100"
+    "duration"  "604800"
+
+    "Levels"
+    {
+        "1" // Anything here
+        {
+            "exp_to_add"    "2"     // Gives when player get kill
+        }
+        "2"
+        {
+            "upgrade_price" "500"
+            "exp_to_add"    "4"     // Gives when player get kill
+        }
+        "3"
+        {
+            "upgrade_price" "500"
+            "exp_to_add"    "7"     // Gives when player get kill
+        }
+    }
+}

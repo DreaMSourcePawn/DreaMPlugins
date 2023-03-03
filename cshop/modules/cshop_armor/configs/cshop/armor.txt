@@ -1,0 +1,12 @@
+"Settings"
+{
+    "price" "80"
+    "sell_price"    "40"
+    "duration"  "604800"
+    
+    "Levels"
+    {
+        "2" "230"       // Upgrade price
+        "3" "346"
+    }
+}

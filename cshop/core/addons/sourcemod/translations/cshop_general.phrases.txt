@@ -1,0 +1,510 @@
+"Phrases"
+{
+    "c_ShopUnavailable"
+    {
+        "en"    "{red}[CSHOP] {default}The shop is unavailable now!"
+        "ru"    "{red}[CSHOP] {default}Магазин сейчас не работает!"
+		"ua"    "{red}[CSHOP] {default}Магазин зараз не працює!"
+    }
+	"m_ClanShop"
+    {
+        "en"    "Clan shop"
+        "ru"    "Клановый магазин"
+		"ua"    "Клановий магазин"
+    }
+    
+    "m_Categories"
+    {
+        "en"    "Categories"
+        "ru"    "Категории"
+		"ua"    "Категорії"
+    }
+    
+    "m_Inventory"
+    {
+        "en"    "Inventory"
+        "ru"    "Инвентарь"
+		"ua"    "Інвентар"
+    }
+    
+    "m_AdminMenu"
+    {
+        "en"    "Admin menu"
+        "ru"    "Админ меню"
+		"ua"    "Адмін меню"
+    }
+    
+    "m_ItemInfoUpgradable"
+    {
+        "#format"   "{1:s},{2:s},{3:s},{4:i},{5:i}"
+        "en"    "{1}\n{2}\nDuration: {3}\nLevels of item: {4}\nAvailable to purchase: {5}\n "
+        "ru"    "{1}\n{2}\nДлительность: {3}\nУровней предмета: {4}\nДоступно к покупке: {5}\n "
+		"ua"    "{1}\n{2}\nТривалість: {3}\nРівнів предмета: {4}\nДоступно до купівлі: {5}\n "
+    }
+    
+    "m_ItemInfo"
+    {
+        "#format"   "{1:s},{2:s},{3:s},{4:i}"
+        "en"    "{1}\n{2}\nDuration: {3}\nAvailable to purchase: {4}\n "
+        "ru"    "{1}\n{2}\nДлительность: {3}\nДоступно к покупке: {4}\n "
+		"ua"    "{1}\n{2}\nТривалість: {3}\nДоступно до купівлі: {4}\n "
+    }
+
+    "m_OwnedItemInfoUpgradable"
+    {
+        "#format"   "{1:s},{2:s},{3:s},{4:s},{5:i},{6:i},{7:i}"
+        "en"    "{1}\n{2}\nDuration: {3} (left: {4})\nLevel of item: {5}/{6}\nAvailable to purchase: {7}\n "
+        "ru"    "{1}\n{2}\nДлительность: {3} (осталось: {4})\nУровень предмета: {5}/{6}\nДоступно к покупке: {7}\n "
+		"ua"    "{1}\n{2}\nТривалість: {3} (залишилось: {4})\nРівень предмета: {5}/{6}\nДоступно до купівлі: {7}\n "
+    }
+    
+    "m_OwnedItemInfo"
+    {
+        "#format"   "{1:s},{2:s},{3:s},{4:s},{5:i}"
+        "en"    "{1}\n{2}\nDuration: {3} (left: {4})\nAvailable to purchase: {5}\n "
+        "ru"    "{1}\n{2}\nДлительность: {3} (осталось: {4})\nДоступно к покупке: {5}\n "
+		"ua"    "{1}\n{2}\nТривалість: {3} (залишилось: {4})\nДоступно до купівлі: {5}\n "
+    }
+    
+    "m_Buy"
+    {
+        "#format"   "{1:i}"
+        "en"    "Buy [{1} coins]"
+        "ru"    "Купить [{1} монет]"
+		"ua"    "Купити [{1} монет]"
+    }
+    
+    "m_Notbuyable"
+    {
+        "en"    "Not buyable"
+        "ru"    "Недоступно к покупке"
+        "ua"    "Не підлягає покупці"
+    }
+
+    "m_Upgrade"
+    {
+        "#format"   "{1:i}"
+        "en"    "Upgrade [{1} coins]"
+        "ru"    "Улучшить [{1} монет]"
+		"ua"    "Покращити [{1} монет]"
+    }
+
+    "m_Sell"
+    {
+        "#format"   "{1:i}"
+        "en"    "Sell [+{1} coins]"
+        "ru"    "Продать [+{1} монет]"
+		"ua"    "Продати [+{1} монет]"
+    }
+    
+    "m_Notsellable"
+    {
+        "en"    "Not sellable"
+        "ru"    "Продажа недоступна"
+        "ua"    "Не підлягає продажу"
+    }
+
+    "m_Use"
+    {
+        "en"    "Use"
+        "ru"    "Использовать"
+		"ua"    "Використати"
+    }
+
+    "m_Activate"
+    {
+        "en"    "Activate"
+        "ru"    "Активировать"
+		"ua"    "Активувати"
+    }
+
+    "m_Deactivate"
+    {
+        "en"    "Deactivate"
+        "ru"    "Деактивировать"
+		"ua"    "Деактивувати"
+    }
+
+    "m_Back"
+    {
+        "en"    "Back"
+        "ru"    "Назад"
+		"ua"    "Назад"
+    }
+    
+    "m_GiveItemToClan"
+    {
+        "en"    "Give item to clan"
+        "ru"    "Выдать предмет клану"
+		"ua"    "Видати предмет клану"
+    }
+    
+    "m_TakeItemFromClan"
+    {
+        "en"    "Take item from clan"
+        "ru"    "Забрать предмет у клана"
+		"ua"    "Забрати предмет в клану"
+    }
+    
+    "m_SetItemLvlInClan"
+    {
+        "en"    "Set item's level in clan"
+        "ru"    "Установить уровень предмета у клана"
+		"ua"    "Встановити рівень предмета в клані"
+    }
+    
+    "m_SetItemExpireTimeInClan"
+    {
+        "en"    "Set item's expire time in clan"
+        "ru"    "Установить время конца действия предмета у клана"
+		"ua"    "Встановити час кінця дії предмета в клані"
+    }
+    
+    "m_ChangeStock"
+    {
+        "en"    "Change number of items in stock"
+        "ru"    "Изменить кол-во предметов на складе"
+		"ua"    "Змінити к-ть предметів на складі"
+    }
+    
+    "m_SureToTakeItem"
+    {
+        "#format"   "{1:s},{2:s}"
+        "en"    "Are you sure you want to take item \"{1}\" from clan {2}?"
+        "ru"    "Вы уверены, что хотите забрать предмет \"{1}\" у клана {2}?"
+		"ua"    "Ви впевнені, що хочете забрати предмет \"{1}\" в клана {2}?"
+    }
+    
+    "m_SureToSetNewTimeForItem"
+    {
+        "#format"   "{1:s},{2:s},{3:s}"
+        "en"    "Are you sure you want to set duration for item \"{1}\"\nIn clan {2} to this value:\n{3}?"
+        "ru"    "Вы уверены, что хотите установить для предмета \"{1}\"\nВ клане {2} этот срок действия:\n{3}?"
+        "ua"    "Ви впевнені, що хочете встановити для предмета \"{1}\"\nВ клані {2} цей термін дії:\n{3}?"
+    }
+    
+    "m_Yes"
+    {
+        "en"    "Yes"
+        "ru"    "Да"
+		"ua"    "Так"
+    }
+    
+    "m_Cancel"
+    {
+        "en"    "Cancel"
+        "ru"    "Отменить"
+        "ua"    "Відмінивши"
+    }
+    
+    "m_Clans"
+    {
+        "en"    "Clans"
+        "ru"    "Кланы"
+		"ua"    "Клани"
+    }
+    
+    "m_ClanItems"
+    {
+        "#format"   "{1:s}"
+        "en"    "{1:s} clan items"
+        "ru"    "Предметы клана {1}"
+		"ua"    "Предмети клана {1}"
+    }
+    
+    "m_TimeSelection"
+    {
+        "en"    "Time selection"
+        "ru"    "Выбор времени"
+        "ua"    "Вибір часу"
+    }
+    
+    "m_InputTimeByYourself"
+    {
+        "en"    "Input time by yourself"
+        "ru"    "Самому ввести время"
+        "ua"    "Самому ввести час"
+    }
+    
+    "m_Duration"
+    {
+        "#format"   "{1:s}"
+        "en"    "Duration: {1}"
+        "ru"    "Длительность: {1}"
+		"ua"    "Тривалість: {1}"
+    }
+    
+    "m_Level"
+    {
+        "#format"   "{1:i}"
+        "en"    "Level: {1}"
+        "ru"    "Уровень: {1}"
+		"ua"    "Рівень: {1}"
+    }
+    
+    "m_Discount"
+    {
+        "#format"   "{1:i}"
+        "en"    "discount {1}%"
+        "ru"    "скидка {1}%"
+		"ua"    "знижка {1}%"
+    }
+
+    "Forever"
+    {
+        "en"    "forever"
+        "ru"    "вечность"
+		"ua"    "вічність"
+    }
+
+    "Months"
+    {
+        "#format"   "{1:i}"
+        "en"    "{1} months"
+        "ru"    "{1} месяцев"
+		"ua"    "{1} місяців"
+    }
+
+    "Days"
+    {
+        "#format"   "{1:i}"
+        "en"    "{1} days"
+        "ru"    "{1} дней"
+		"ua"    "{1} днів"
+    }
+
+    "Hours"
+    {
+        "#format"   "{1:i}"
+        "en"    "{1} hours"
+        "ru"    "{1} часов"
+		"ua"    "{1} годин"
+    }
+
+    "Minutes"
+    {
+        "#format"   "{1:i}"
+        "en"    "{1} mins"
+        "ru"    "{1} минут"
+		"ua"    "{1} хвилин"
+    }
+
+    "Seconds"
+    {
+        "#format"   "{1:i}"
+        "en"    "{1} secs"
+        "ru"    "{1} секунд"
+		"ua"    "{1} секунд"
+    }
+    
+    "c_YouWasLoaded"
+    {
+        "en"    "{green}[CSHOP] {default}Your clan items was loaded!"
+        "ru"    "{green}[CSHOP] {default}Ваши клановые предметы были загружены!"
+		"ua"    "{green}[CSHOP] {default}Ваші кланові предмети були загружені!"
+    }
+
+    "c_NoAvailableItems"
+    {
+        "en"    "{red}[CSHOP] {default}There is no available items!"
+        "ru"    "{red}[CSHOP] {default}Нет доступных предметов!"
+		"ua"    "{red}[CSHOP] {default}Нема доступних предметів!"
+    }
+
+    "c_ErrorWithPurchase"
+    {
+        "en"    "{red}[CSHOP] {default}Error occurred with the item purchase!"
+        "ru"    "{red}[CSHOP] {default}Ошибка с покупкой предмета!"
+		"ua"    "{red}[CSHOP] {default}Помилка з купівлею предмета!"
+    }
+    
+    "c_ErrorWithUse"
+    {
+        "en"    "{red}[CSHOP] {default}Error occurred with the item using!"
+        "ru"    "{red}[CSHOP] {default}Ошибка с использованием предмета!"
+		"ua"    "{red}[CSHOP] {default}Помилка з використанням предмета!"
+    }
+
+    "c_ErrorWithUpgrade"
+    {
+        "en"    "{red}[CSHOP] {default}Error occurred with the item upgrade!"
+        "ru"    "{red}[CSHOP] {default}Ошибка с улучшением предмета!"
+		"ua"    "{red}[CSHOP] {default}Помилка з покращенням предмета!"
+    }
+
+    "c_ErrorWithSale"
+    {
+        "en"    "{red}[CSHOP] {default}Error occurred with the item sale!"
+        "ru"    "{red}[CSHOP] {default}Ошибка с продажей предмета!"
+		"ua"    "{red}[CSHOP] {default}Помилка з продажем предмета!"
+    }
+
+    "c_NoEnoughCoins"
+    {
+        "en"    "{red}[CSHOP] {default}Your clan has no enough coins to do it!"
+        "ru"    "{red}[CSHOP] {default}У Вашего клана не хватает монет для этого!"
+		"ua"    "{red}[CSHOP] {default}Вашому клану не вистачає монет для цього!"
+    }
+
+    "c_YouBought"
+    {
+        "#format"   "{1:s}"
+        "en"    "{green}[CSHOP] {default}You successfully bought {1} for your clan!"
+        "ru"    "{green}[CSHOP] {default}Вы успешно купили {1} для своего клана!"
+		"ua"    "{green}[CSHOP] {default}Ви успішно купили {1} для свого клану!"
+    }
+
+    "c_YouUpgraded"
+    {
+        "#format"   "{1:s},{2:i}"
+        "en"    "{green}[CSHOP] {default}You upgraded {1} to {2} level!"
+        "ru"    "{green}[CSHOP] {default}Вы улучшили {1} до {2} уровня!"
+		"ua"    "{green}[CSHOP] {default}Ви покращили {1} до {2} рівня!"
+    }
+
+    "c_YouSold"
+    {
+        "#format"   "{1:s}"
+        "en"    "{green}[CSHOP] {default}You sold {1}!"
+        "ru"    "{green}[CSHOP] {default}Вы продали {1}!"
+		"ua"    "{green}[CSHOP] {default}Ви продали {1}!"
+    }
+    
+    "c_Error"
+    {
+        "en"    "{red}[CSHOP] {default}An error has occurred!"
+        "ru"    "{red}[CSHOP] {default}Возникла ошибка!"
+		"ua"    "{red}[CSHOP] {default}Виникла помилка!"
+    }
+    
+    "c_EmptyInventory"
+    {
+        "en"    "{red}[CSHOP] {default}The inventory is empty!"
+        "ru"    "{red}[CSHOP] {default}Инвентарь пуст!"
+		"ua"    "{red}[CSHOP] {default}Інвентар пустий!"
+    }
+    
+    "c_ItemExpired"
+    {
+        "#format"   "{1:s}"
+        "en"    "{red}[CSHOP] {default}{1} expired!"
+        "ru"    "{red}[CSHOP] {default}Время действия {1} истекло!"
+		"ua"    "{red}[CSHOP] {default}Час дії {1} закінчився!"
+    }
+    
+    "c_AdminCancel"
+    {
+        "en"    "{green}[CSHOP] {default}Input \"cancel\" to... Cancel the action :)"
+        "ru"    "{green}[CSHOP] {default}Введите \"отмена\", чтобы... Отменить действие :)"
+		"ua"    "{green}[CSHOP] {default}Введіть \"відміна\", щоб... Відмінити дію :)"
+    }
+    
+    "c_ChangeItemStock"
+    {
+        "#format"   "{1:s},{2:i}"
+        "en"    "{green}[CSHOP] {default}Type in chat how many {1} add/take to/from stock. (ex. 5 or -5). There are {2} in stock now"
+        "ru"    "{green}[CSHOP] {default}Напишите в чат, на сколько изменить количество {1} на складе. (Пример: 5 или -5). Сейчас на складе {2} штук"
+		"ua"    "{green}[CSHOP] {default}Напишіть в чат, на скільки змінити кількість {1} на складі. (Приклад: 5 або -5). Зараз на складі {2} штук"
+    }
+    
+    "c_ChangeStockSuccess"
+    {
+        "en"    "{green}[CSHOP] {default}You successfully changed amount of item in stock!"
+        "ru"    "{green}[CSHOP] {default}Вы успешно изменили число предмета на складе!"
+		"ua"    "{green}[CSHOP] {default}Ви успішно змінили кількість предмета на складі!"
+    }
+    
+    "c_NoClansWithItems"
+    {
+        "en"    "{red}[CSHOP] {default}There are no clans with items!"
+        "ru"    "{red}[CSHOP] {default}Нет кланов, у которых есть предметы!"
+		"ua"    "{red}[CSHOP] {default}Нема кланів, в яких є предмети!"
+    }
+    
+    "c_ItemWasSuccessfullyTaken"
+    {
+        "#format"   "{1:s},{2:s}"
+        "en"    "{green}[CSHOP] {default}You successfully took item \"{1}\" from clan {2}!"
+        "ru"    "{green}[CSHOP] {default}Вы успешно забрали предмет \"{1}\" у клана {2}!"
+		"ua"    "{green}[CSHOP] {default}Ви успішно забрали предмет \"{1}\" в клана {2}!"
+    }
+    
+    "c_ItemWasTakenByAdmin"
+    {
+        "#format"   "{1:s}"
+        "en"    "{red}[CSHOP] {default}Item \"{1}\" was taken by admininstator"
+        "ru"    "{red}[CSHOP] {default}Предмет \"{1}\" забрал администратор"
+		"ua"    "{red}[CSHOP] {default}Предмет \"{1}\" забрав адміністратор"
+    }
+    
+    "c_InputNewLevel"
+    {
+        "#format"   "{1:s},{2:s},{3:i}"
+        "en"    "{green}[CSHOP] {default}Input new level for item {1} in clan {2}. Current level: {3}"
+        "ru"    "{green}[CSHOP] {default}Введите новый уровень для предмета {1} в клане {2}. Текущий уровень: {3}"
+		"ua"    "{green}[CSHOP] {default}Введіть новий рівень для предмета {1} в клані {2}. Поточний рівень: {3}"
+    }
+    
+    "c_ItemLevelWasSuccessfullyChanged"
+    {
+        "#format"   "{1:s},{2:s}"
+        "en"    "{green}[CSHOP] {default}You successfully changed level for item \"{1}\" in clan {2}!"
+        "ru"    "{green}[CSHOP] {default}Вы успешно изменили уровень предмету \"{1}\" в клане {2}!"
+		"ua"    "{green}[CSHOP] {default}Ви успішно змінили рівень предмету \"{1}\" в клані {2}!"
+    }
+    
+    "c_ItemLevelWasChangedByAdmin"
+    {
+        "#format"   "{1:s},{2:i}"
+        "en"    "{green}[CSHOP] {default}Item \"{1}\" level was changed to {2} by admininstator"
+        "ru"    "{green}[CSHOP] {default}Предмету \"{1}\" установлен новый уровень ({2}) администратором"
+		"ua"    "{green}[CSHOP] {default}Предмету \"{1}\" встановлений новий рівень ({2}) адміністратором"
+    }
+    
+    "c_InputNewDuration"
+    {
+        "#format"   "{1:s},{2:s}"
+        "en"    "{green}[CSHOP] {default}Input new duration in seconds for item {1} in clan {2}. -1 is infinite"
+        "ru"    "{green}[CSHOP] {default}Введите новый срок действия в секундах для предмета {1} в клане {2}. -1 это вечно"
+		"ua"    "{green}[CSHOP] {default}Введіть новий термін дії в секундах для предмету {1} в клані {2}. -1 це вічність"
+    }
+    
+    "c_ItemDurationWasSuccessfullyChanged"
+    {
+        "#format"   "{1:s},{2:s}"
+        "en"    "{green}[CSHOP] {default}You successfully changed duration for item \"{1}\" in clan {2}!"
+        "ru"    "{green}[CSHOP] {default}Вы успешно изменили срок действия у предмета \"{1}\" в клане {2}!"
+		"ua"    "{green}[CSHOP] {white}Ви успішно змінили термін дії предмета \"{1}\" в клані {2}!"
+    }
+    
+    "c_ItemDurationWasChangedByAdmin"
+    {
+        "#format"   "{1:s},{2:s}"
+        "en"    "{green}[CSHOP] {default}Item \"{1}\" duration was changed to {2} by admininstator"
+        "ru"    "{green}[CSHOP] {default}Предмету \"{1}\" установлен новый срок действия ({2}) администратором"
+		"ua"    "{green}[CSHOP] {default}Предмету \"{1}\" встановлений новий ремній дії ({2}) адміністратором"
+    }
+    
+    "c_ItemGivenSuccessfully"
+    {
+        "#format"   "{1:s},{2:s}"
+        "en"    "{green}[CSHOP] {default}You successfully gave item \"{1}\" to clan {2}!"
+        "ru"    "{green}[CSHOP] {default}Вы успешно выдали \"{1}\" клану {2}!"
+		"ua"    "{green}[CSHOP] {default}Ви успішно видали \"{1}\" клану {2}!"
+    }
+    
+    "c_ItemGivenByAdmin"
+    {
+        "#format"   "{1:s},{2:s}"
+        "en"    "{green}[CSHOP] {default}Item \"{1}\" was given to your clan by admininstator"
+        "ru"    "{green}[CSHOP] {default}Предмет \"{1}\" был выдан Вашему клану администратором"
+		"ua"    "{green}[CSHOP] {default}Предмет \"{1}\" був виданий Вашому клану адміністратором"
+    }
+    
+    "c_GiveItemTip"
+    {
+        "en"    "{red}[CSHOP] Warning! {default}If you give an item, which clan has, its duration will be updated to default for this item!"
+        "ru"    "{red}[CSHOP] Внимание! {default}Если выдать предмет, который уже есть, то срок действия обновится на стандартный для предмета!"
+        "ua"    "{red}[CSHOP] Увага! {white}Якщо видати предмет, який вже є, то термін дії обновится на стандартний для предмета!"
+    }
+}

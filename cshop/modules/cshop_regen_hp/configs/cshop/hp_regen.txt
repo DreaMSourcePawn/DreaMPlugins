@@ -1,0 +1,28 @@
+"Settings"
+{
+    "price" "800"
+    "sell_price"    "40"
+    "duration"  "259200"
+    
+    "Levels"
+    {
+        "1" // Anything here
+        {
+            "hp_to_add"     "1"
+            "cd"            "2"     // Gives hp_to_add in 'cd' seconds
+            "max_hp"        "70"    // Regen until this value
+        }
+        "2"
+        {
+            "upgrade_price" "500"
+            "hp_to_add"     "1"
+            "cd"            "2"
+        }
+        "3"
+        {
+            "upgrade_price" "500"
+            "hp_to_add"     "1"
+            "cd"            "2"
+        }
+    }
+}
