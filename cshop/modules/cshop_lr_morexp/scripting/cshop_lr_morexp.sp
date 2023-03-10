@@ -15,7 +15,7 @@ public Plugin myinfo =
 	name = "[CSHOP/LR] More XP for Levels Ranks", 
 	author = "DreaM", 
 	description = "Add more XP for kill for LR to cshop", 
-	version = "1.0", 
+	version = "1.01", 
 } 
 
 public void OnPluginStart()
@@ -87,7 +87,7 @@ void OnItemRegistered(ClanItemId itemId, const char[] sName)
     CShop_SetIntItemInfo(itemId, CSHOP_ITEM_SELLPRICE, g_kvSettings.GetNum("sell_price"));
     CShop_SetIntItemInfo(itemId, CSHOP_ITEM_DURATION, g_kvSettings.GetNum("duration"));
 
-    if(g_alLevelsPrices.Length > 1)
+    if(g_alLevelsPrices.Length > 0)
     {
         CShop_SetIntItemInfo(itemId, CSHOP_ITEM_MAX_LEVEL, g_alLevelsPrices.Length+1);
         CShop_SetItemLevelsPrices(itemId, g_alLevelsPrices);

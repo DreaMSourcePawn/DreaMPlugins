@@ -1,0 +1,22 @@
+"Settings"
+{
+    "price" "500"
+    "sell_price"    "400"
+    "duration"  "604800"
+    "server_id" "-1"        // Default is -1
+    
+    "Levels"
+    {
+        "1" // Anything here
+        {
+            "amount"    "1000"      // How many credits give to clan members
+            "divide"    "0"         // Divide credits among all clan members (amount / members). Default is 0
+        }
+        "2"
+        {
+            "upgrade_price"     "750"
+            "amount"    "10000"      // How many credits give to clan members
+            "divide"    "1"         // Divide credits among all clan members (amount / members). Default is 0
+        }
+    }
+}

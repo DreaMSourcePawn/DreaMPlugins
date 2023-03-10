@@ -13,7 +13,7 @@ public Plugin myinfo =
 	name = "[CSHOP] Armor", 
 	author = "DreaM", 
 	description = "Add armor to cshop", 
-	version = "1.0", 
+	version = "1.01", 
 } 
 
 public void OnPluginStart()
@@ -75,7 +75,7 @@ void OnItemRegistered(ClanItemId itemId, const char[] sName)
     CShop_SetIntItemInfo(itemId, CSHOP_ITEM_SELLPRICE, g_kvSettings.GetNum("sell_price"));
     CShop_SetIntItemInfo(itemId, CSHOP_ITEM_DURATION, g_kvSettings.GetNum("duration"));
 
-    if(alLevelsPrices.Length > 1)
+    if(alLevelsPrices.Length > 0)
     {
         CShop_SetIntItemInfo(itemId, CSHOP_ITEM_MAX_LEVEL, alLevelsPrices.Length+1);
         CShop_SetItemLevelsPrices(itemId, alLevelsPrices);

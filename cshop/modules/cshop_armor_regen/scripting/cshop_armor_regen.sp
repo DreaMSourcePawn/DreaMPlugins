@@ -4,7 +4,6 @@ ClanItemId g_itemId = INVALID_ITEM;
 
 enum struct LevelInfo
 {
-    int iUpgradePrice;
     int iArmorToAdd;
     int iRequiredSeconds;
     int iMaxArmor;
@@ -26,7 +25,7 @@ public Plugin myinfo =
 	name = "[CSHOP] Armor regen", 
 	author = "DreaM", 
 	description = "Add armor regen to cshop", 
-	version = "1.0", 
+	version = "1.01", 
 } 
 
 public void OnPluginStart()
@@ -57,9 +56,10 @@ void LoadConfig()
     if(g_kvSettings.JumpToKey("Levels") && g_kvSettings.GotoFirstSubKey(false))
     {
         LevelInfo levelInfo;
+        int iUpgradePrice;
         do
         {
-            levelInfo.iUpgradePrice = g_kvSettings.GetNum("upgrade_price", -1);
+            iUpgradePrice = g_kvSettings.GetNum("upgrade_price", -1);
             levelInfo.iArmorToAdd = g_kvSettings.GetNum("armor_to_add", -1);
             if(levelInfo.iArmorToAdd < 1)
                 continue;
@@ -72,7 +72,7 @@ void LoadConfig()
 
             g_alLevelParams.PushArray(levelInfo, sizeof(levelInfo));
             if(g_alLevelParams.Length > 1)
-                g_alLevelsPrices.Push(levelInfo.iUpgradePrice);
+                g_alLevelsPrices.Push(iUpgradePrice);
         } while(g_kvSettings.GotoNextKey(false));
     }
 
@@ -109,7 +109,7 @@ void OnItemRegistered(ClanItemId itemId, const char[] sName)
     CShop_SetIntItemInfo(itemId, CSHOP_ITEM_SELLPRICE, g_kvSettings.GetNum("sell_price"));
     CShop_SetIntItemInfo(itemId, CSHOP_ITEM_DURATION, g_kvSettings.GetNum("duration"));
 
-    if(g_alLevelsPrices.Length > 1)
+    if(g_alLevelsPrices.Length > 0)
     {
         CShop_SetIntItemInfo(itemId, CSHOP_ITEM_MAX_LEVEL, g_alLevelsPrices.Length+1);
         CShop_SetItemLevelsPrices(itemId, g_alLevelsPrices);
@@ -125,68 +125,49 @@ void OnItemRegistered(ClanItemId itemId, const char[] sName)
 
 Action GiveArmorTimer(Handle timer)
 {
-    int iArmor, iArmorRegen, iMaxArmor;
+    int iArmor, iArmorToAdd, iMaxArmor, iSecondsNeed;
     for(int i = 1; i <= MaxClients; ++i)
     {
         if(IsClientInGame(i) && IsPlayerAlive(i) && g_iLevel[i])
         {
-            if(g_iSeconds[i] < GetRequiredSecondsToRegen(i))
+            iSecondsNeed = GetArmorLevelData(i, iArmorToAdd, iMaxArmor);
+            if(g_iSeconds[i] < iSecondsNeed)
             {
                 g_iSeconds[i]++;
                 continue;
             }
 
             iArmor = GetEntProp(i, Prop_Send, "m_ArmorValue");
-            iArmorRegen = GetArmorToAdd(i);
-            iMaxArmor = GetMaxArmor(i);
-            if(iArmor + iArmorRegen < iMaxArmor)
-                SetEntProp(i, Prop_Send, "m_ArmorValue", iArmor + iArmorRegen);
+            if(iArmor + iArmorToAdd < iMaxArmor)
+                SetEntProp(i, Prop_Send, "m_ArmorValue", iArmor + iArmorToAdd);
             else if(iArmor < iMaxArmor)
                 SetEntProp(i, Prop_Send, "m_ArmorValue", iMaxArmor);
+
+            g_iSeconds[i] = 0;
         }
     }
 }
 
 /**
- * Получение числа брони, сколько выдавать игроку
+ * Получение данных о предмете для игрока
+ * 
+ * @param iClient         Индекс игрока
+ * @param iArmorToAdd     Сколько брони выдавать
+ * @param iMaxArmor       Какой лимит брони
+ * @return                кол-во требуемых секунд для регена
  */
-int GetArmorToAdd(int iClient)
+int GetArmorLevelData(int iClient, int& iArmorToAdd, int& iMaxArmor)
 {
     if(g_iLevel[iClient] > g_alLevelParams.Length)
-        return 0;
-
+        g_iLevel[iClient] = g_alLevelParams.Length;
+    
     int iLevelIndex = g_iLevel[iClient] - 1;
     LevelInfo levelInfo;
     g_alLevelParams.GetArray(iLevelIndex, levelInfo, sizeof(levelInfo));
-    return levelInfo.iArmorToAdd;
-}
-
-/**
- * Получение секунд, сколько должно пройти для игрока, чтобы выдать броню
- */
-int GetRequiredSecondsToRegen(int iClient)
-{
-    if(g_iLevel[iClient] > g_alLevelParams.Length)
-        return 999999;
-
-    int iLevelIndex = g_iLevel[iClient] - 1;
-    LevelInfo levelInfo;
-    g_alLevelParams.GetArray(iLevelIndex, levelInfo, sizeof(levelInfo));
+    
+    iArmorToAdd = levelInfo.iArmorToAdd;
+    iMaxArmor = levelInfo.iMaxArmor;
     return levelInfo.iRequiredSeconds;
-}
-
-/**
- * Получение макс. числа брони, выше которого не выдавать
- */
-int GetMaxArmor(int iClient)
-{
-    if(g_iLevel[iClient] > g_alLevelParams.Length)
-        return 0;
-
-    int iLevelIndex = g_iLevel[iClient] - 1;
-    LevelInfo levelInfo;
-    g_alLevelParams.GetArray(iLevelIndex, levelInfo, sizeof(levelInfo));
-    return levelInfo.iMaxArmor;
 }
                 // ===================== ИГРОК ===================== //
 public void OnClientPostAdminCheck(int iClient)

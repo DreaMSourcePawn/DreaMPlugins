@@ -1,0 +1,32 @@
+"Settings"
+{
+    "price" "500"
+    "sell_price"    "400"
+    "duration"  "604800"
+    
+    "Levels"
+    {
+        "1" // Anything here
+        {
+            "give_mult"         "1.02"     // Multiplier for given damage. Default is 1.0
+        }
+        "2"
+        {
+            "upgrade_price"     "750"
+            "give_mult"         "1.05"     // Multiplier for given damage. Default is 1.0
+            "take_mult"         "0.98"    // Multiplier for taken damage. Default is 1.0
+        }
+        "3"
+        {
+            "upgrade_price"     "1500"
+            "give_mult"         "1.1"     // Multiplier for given damage. Default is 1.0
+            "take_mult"         "0.95"    // Multiplier for taken damage. Default is 1.0
+        }
+        "4"
+        {
+            "upgrade_price"     "2500"
+            "give_mult"         "1.2"     // Multiplier for given damage. Default is 1.0
+            "take_mult"         "0.9"    // Multiplier for taken damage. Default is 1.0
+        }
+    }
+}

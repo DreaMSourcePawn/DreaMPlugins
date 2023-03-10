@@ -2,25 +2,19 @@
 
 ClanItemId g_itemId = INVALID_ITEM;
 
-enum struct LevelInfo
-{
-    int iUpgradePrice;
-    int iHpToAdd;
-}
-
 int g_iLevel[MAXPLAYERS+1];
 bool g_bShopEnabled = false;
 
 KeyValues g_kvSettings;
 ArrayList g_alLevelsPrices = null;
-ArrayList g_alLevelParams = null;
+ArrayList g_alHpToAdd = null;
 
 public Plugin myinfo = 
 { 
 	name = "[CSHOP] More hp", 
 	author = "DreaM", 
 	description = "Add more hp modifier to cshop", 
-	version = "1.0", 
+	version = "1.01", 
 } 
 
 public void OnPluginStart()
@@ -39,28 +33,28 @@ public void OnPluginEnd()
 void LoadConfig()
 {
     if(g_kvSettings) delete g_kvSettings;
-    if(g_alLevelParams) delete g_alLevelParams;
+    if(g_alHpToAdd) delete g_alHpToAdd;
     if(g_alLevelsPrices) delete g_alLevelsPrices;
 
     g_kvSettings = new KeyValues("Settings");
-    g_alLevelParams = new ArrayList(sizeof(LevelInfo));
+    g_alHpToAdd = new ArrayList();
     g_alLevelsPrices = new ArrayList();
     if(!g_kvSettings.ImportFromFile("addons/sourcemod/configs/cshop/cshop_health.txt"))
         SetFailState("[CSHOP HP] No cfg file (addons/sourcemod/configs/cshop/cshop_health.txt)!");
 
     if(g_kvSettings.JumpToKey("Levels") && g_kvSettings.GotoFirstSubKey(false))
     {
-        LevelInfo levelInfo;
+        int iHpToAdd, iUpgradePrice;
         do
         {
-            levelInfo.iUpgradePrice = g_kvSettings.GetNum("upgrade_price", -1);
-            levelInfo.iHpToAdd = g_kvSettings.GetNum("add_hp", -1);
-            if(levelInfo.iHpToAdd < 1)
+            iUpgradePrice = g_kvSettings.GetNum("upgrade_price", -1);
+            iHpToAdd = g_kvSettings.GetNum("add_hp", -1);
+            if(iHpToAdd < 1)
                 continue;
             
-            g_alLevelParams.PushArray(levelInfo, sizeof(levelInfo));
-            if(g_alLevelParams.Length > 1)
-                g_alLevelsPrices.Push(levelInfo.iUpgradePrice);
+            g_alHpToAdd.Push(iHpToAdd);
+            if(g_alHpToAdd.Length > 1)
+                g_alLevelsPrices.Push(iUpgradePrice);
         } while(g_kvSettings.GotoNextKey(false));
     }
 
@@ -71,7 +65,7 @@ void LoadConfig()
     else
         HookEvent("round_start", OnRoundStart);
 
-    if(g_alLevelParams.Length < 1)
+    if(g_alHpToAdd.Length < 1)
         SetFailState("[CSHOP HP] No level parameters in cfg file (addons/sourcemod/configs/cshop/cshop_health.txt)!");
 
     g_kvSettings.Rewind();
@@ -85,7 +79,7 @@ public void CShop_OnShopStatusChange(bool bActive)
 public void CShop_OnShopLoaded()
 {
     g_bShopEnabled = CShop_IsShopActive();
-    if(g_alLevelParams.Length)
+    if(g_alHpToAdd.Length)
         CShop_RegisterItem("hp_armor", "MoreHp", "MoreHpDesc", OnItemRegistered);
 }
 
@@ -97,7 +91,7 @@ void OnItemRegistered(ClanItemId itemId, const char[] sName)
     CShop_SetIntItemInfo(itemId, CSHOP_ITEM_SELLPRICE, g_kvSettings.GetNum("sell_price"));
     CShop_SetIntItemInfo(itemId, CSHOP_ITEM_DURATION, g_kvSettings.GetNum("duration"));
 
-    if(g_alLevelsPrices.Length > 1)
+    if(g_alLevelsPrices.Length > 0)
     {
         CShop_SetIntItemInfo(itemId, CSHOP_ITEM_MAX_LEVEL, g_alLevelsPrices.Length+1);
         CShop_SetItemLevelsPrices(itemId, g_alLevelsPrices);
@@ -153,13 +147,11 @@ void OnSpawn(Handle event, const char[] name, bool dontBroadcast)
  */
 int GetHpToAdd(int iClient)
 {
-    if(g_iLevel[iClient] > g_alLevelParams.Length)
-        return 0;
+    if(g_iLevel[iClient] > g_alHpToAdd.Length)
+        g_iLevel[iClient] = g_alHpToAdd.Length;
 
     int iLevelIndex = g_iLevel[iClient] - 1;
-    LevelInfo levelInfo;
-    g_alLevelParams.GetArray(iLevelIndex, levelInfo, sizeof(levelInfo));
-    return levelInfo.iHpToAdd;
+    return g_alHpToAdd.Get(iLevelIndex);
 }
                 // ===================== ИГРОК ===================== //
 public void OnClientPostAdminCheck(int iClient)
