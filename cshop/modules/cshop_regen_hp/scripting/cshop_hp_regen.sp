@@ -4,7 +4,6 @@ ClanItemId g_itemId = INVALID_ITEM;
 
 enum struct LevelInfo
 {
-    int iUpgradePrice;
     int iHpToAdd;
     int iRequiredSeconds;
     int iMaxHp;
@@ -26,7 +25,7 @@ public Plugin myinfo =
 	name = "[CSHOP] HP regen", 
 	author = "DreaM", 
 	description = "Add HP regen to cshop", 
-	version = "1.0", 
+	version = "1.01", 
 } 
 
 public void OnPluginStart()
@@ -56,9 +55,10 @@ void LoadConfig()
     LevelInfo levelInfo;
     if(g_kvSettings.JumpToKey("Levels") && g_kvSettings.GotoFirstSubKey())
     {
+        int iUpgradePrice;
         do
         {
-            levelInfo.iUpgradePrice = g_kvSettings.GetNum("upgrade_price", -1);
+            iUpgradePrice = g_kvSettings.GetNum("upgrade_price", -1);
             levelInfo.iHpToAdd = g_kvSettings.GetNum("hp_to_add", -1);
             if(levelInfo.iHpToAdd < 1)
                 continue;
@@ -71,7 +71,7 @@ void LoadConfig()
 
             g_alLevelParams.PushArray(levelInfo, sizeof(levelInfo));
             if(g_alLevelParams.Length > 1)
-                g_alLevelsPrices.Push(levelInfo.iUpgradePrice);
+                g_alLevelsPrices.Push(iUpgradePrice);
         } while(g_kvSettings.GotoNextKey());
     }
 
@@ -106,7 +106,7 @@ void OnItemRegistered(ClanItemId itemId, const char[] sName)
     CShop_SetIntItemInfo(itemId, CSHOP_ITEM_SELLPRICE, g_kvSettings.GetNum("sell_price"));
     CShop_SetIntItemInfo(itemId, CSHOP_ITEM_DURATION, g_kvSettings.GetNum("duration"));
 
-    if(g_alLevelsPrices.Length > 1)
+    if(g_alLevelsPrices.Length > 0)
     {
         CShop_SetIntItemInfo(itemId, CSHOP_ITEM_MAX_LEVEL, g_alLevelsPrices.Length+1);
         CShop_SetItemLevelsPrices(itemId, g_alLevelsPrices);
@@ -125,22 +125,21 @@ void OnItemRegistered(ClanItemId itemId, const char[] sName)
 
 Action GiveHPTimer(Handle timer)
 {
-    int iHealth, iHealthRegen, iMaxHp;
+    int iHealth, iHpToAdd, iMaxHp, iSecondsNeed;
     for(int i = 1; i <= MaxClients; ++i)
     {
         if(IsClientInGame(i) && IsPlayerAlive(i) && g_iLevel[i])
         {
-            if(g_iSeconds[i] < GetRequiredSecondsToRegen(i))
+            iSecondsNeed = GetHpLevelData(i, iHpToAdd, iMaxHp)
+            if(g_iSeconds[i] < iSecondsNeed)
             {
                 g_iSeconds[i]++;
                 continue;
             }
 
             iHealth = GetEntProp(i, Prop_Send, "m_iHealth");
-            iHealthRegen = GetHpToAdd(i);
-            iMaxHp = GetMaxHp(i);
-            if(iHealth + iHealthRegen < iMaxHp)
-                SetEntProp(i, Prop_Send, "m_iHealth", iHealth+iHealthRegen);
+            if(iHealth + iHpToAdd < iMaxHp)
+                SetEntProp(i, Prop_Send, "m_iHealth", iHealth+iHpToAdd);
             else if(iHealth < iMaxHp)
                 SetEntProp(i, Prop_Send, "m_iHealth", iMaxHp);
 
@@ -150,45 +149,25 @@ Action GiveHPTimer(Handle timer)
 }
 
 /**
- * Получение числа HP, сколько выдавать игроку
+ * Получение данных о предмете для игрока
+ * 
+ * @param iClient         Индекс игрока
+ * @param iHpToAdd        Сколько ХП выдавать
+ * @param iMaxHp          Какой лимит ХП
+ * @return                кол-во требуемых секунд для регена
  */
-int GetHpToAdd(int iClient)
+int GetHpLevelData(int iClient, int& iHpToAdd, int& iMaxHp)
 {
     if(g_iLevel[iClient] > g_alLevelParams.Length)
-        return 0;
-
+        g_iLevel[iClient] = g_alLevelParams.Length;
+    
     int iLevelIndex = g_iLevel[iClient] - 1;
     LevelInfo levelInfo;
     g_alLevelParams.GetArray(iLevelIndex, levelInfo, sizeof(levelInfo));
-    return levelInfo.iHpToAdd;
-}
-
-/**
- * Получение секунд, сколько должно пройти для игрока, чтобы выдать HP
- */
-int GetRequiredSecondsToRegen(int iClient)
-{
-    if(g_iLevel[iClient] > g_alLevelParams.Length)
-        return 999999;
-
-    int iLevelIndex = g_iLevel[iClient] - 1;
-    LevelInfo levelInfo;
-    g_alLevelParams.GetArray(iLevelIndex, levelInfo, sizeof(levelInfo));
+    
+    iHpToAdd = levelInfo.iHpToAdd;
+    iMaxHp = levelInfo.iMaxHp;
     return levelInfo.iRequiredSeconds;
-}
-
-/**
- * Получение макс. числа ХП, выше которого не выдавать
- */
-int GetMaxHp(int iClient)
-{
-    if(g_iLevel[iClient] > g_alLevelParams.Length)
-        return 0;
-
-    int iLevelIndex = g_iLevel[iClient] - 1;
-    LevelInfo levelInfo;
-    g_alLevelParams.GetArray(iLevelIndex, levelInfo, sizeof(levelInfo));
-    return levelInfo.iMaxHp;
 }
                 // ===================== ИГРОК ===================== //
 public void OnClientPostAdminCheck(int iClient)
